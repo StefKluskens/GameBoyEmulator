@@ -2,6 +2,7 @@
 #include "GameBoy.h"
 #include <fstream>
 #include <time.h>
+#include <iostream>
 
 
 GameBoy::GameBoy( const std::string &gameFile ): GameBoy{} {
@@ -104,6 +105,7 @@ GameHeader GameBoy::ReadHeader() {
 		case 0x02:
 		case 0x03:
 			header.mbc = mbc1;
+			//std::cout << "Using MBC1\n";
 			break;
 		case 0x05:
 		case 0x06:

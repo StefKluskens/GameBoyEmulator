@@ -1,0 +1,7 @@
+﻿  pch.cpp
+  LR35902.cpp
+  Emulator.cpp
+  GameBoy.cpp
+  OpcodeDefinitions.cpp
+  Generating Code...
+  GameboyEmulator.vcxproj -> C:\Users\Stef\Documents\School\Year3\Bachelor\Emulator\LibGameBoy-master\x64\Debug\GameboyEmulator.lib

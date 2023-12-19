@@ -198,7 +198,7 @@ Bits 1-0 - Input Clock Select
 	uint8_t JoyPadState{ 0xFF };///< States of all 8 keys\n 1==NOT pressed
 	bool IsPaused:1;
 	bool IsRunning:1;
-	bool RamBankEnabled:1;
+	bool RamBankEnabled = true;
 	uint8_t IsCycleFrameBound:2; ///< Whether we're cycle, frame or not bound\note Bit 0: Frame\n Bit 1: Cycle\n Can't be both
 	bool OnlyDrawLast:1;
 	bool AutoSpeed:1;
@@ -206,7 +206,7 @@ Bits 1-0 - Input Clock Select
 
 	MBCs Mbc{};
 	MemoryBankController* m_MBC{};
-	bool m_UsingMBC{};
+	bool m_IsRam = true;
 
 	uint8_t m_RomBank{};
 	uint8_t m_RamBank{};

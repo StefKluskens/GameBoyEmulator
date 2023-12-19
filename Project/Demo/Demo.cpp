@@ -14,8 +14,8 @@
 SDL_Window* wind{};
 SDL_Renderer* rendr{};
 SDL_Texture* textures[INSTANCECOUNT];
-//gbee::Emulator emu{"Tetris(JUE)(V1.1)[!].gb", INSTANCECOUNT};
-gbee::Emulator emu{"Batman-TheVideoGame(World).gb", INSTANCECOUNT};
+gbee::Emulator emu{"Tetris(JUE)(V1.1)[!].gb", INSTANCECOUNT};
+//gbee::Emulator emu{"Batman-TheVideoGame(World).gb", INSTANCECOUNT};
 //gbee::Emulator emu{"cpu_instrs.gb", INSTANCECOUNT};
 
 void SetKeyState(const SDL_Event& event) {

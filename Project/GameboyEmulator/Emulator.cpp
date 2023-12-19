@@ -22,7 +22,6 @@ void gbee::Emulator::LoadGame( const std::string &gbFile ) const {
 		Instances[i].LoadGame( gbFile );
 		Instances[i].SetRunningVariable( true );
 	}
-
 }
 
 void gbee::Emulator::Start() const {

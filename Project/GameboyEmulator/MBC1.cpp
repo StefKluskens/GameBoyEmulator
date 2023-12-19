@@ -2,132 +2,95 @@
 #include "MBC1.h"
 #include <iostream>
 
-MBC1::MBC1(std::vector<uint8_t>& rom)
+MBC1::MBC1(const std::vector<uint8_t>& rom)
 	: MemoryBankController(rom)
 {
 }
 
-uint8_t MBC1::Read(const uint16_t address, uint8_t& romBank, uint8_t& ramBank, std::vector<uint8_t>& ramBanks, bool& ramEnabled) const
+uint8_t MBC1::ReadByte(const uint16_t address, uint8_t& romBank, uint8_t& ramBank, const uint8_t* memory, const bool ramEnabled, const std::vector<uint8_t>& ramBanks, const bool isRam) const
 {
-	if (InRange(address, 0x0000, 0x3FFF))
+	//std::cout << "ReadByte called for address " << std::hex << address << std::dec << std::endl;
+
+	if (address <= 0x3FFF)
 	{
+		//std::cout << "Read from ROM Bank 0 at address " << std::hex << address << std::dec << std::endl;
 		return m_Rom[address];
 	}
 	else if (InRange(address, 0x4000, 0x7FFF))
 	{
-		uint8_t temp = romBank;
-		int offset = address - 0x4000;
-		int lookup = (temp * 0x4000) + offset;
-
-		return m_Rom[lookup];
+		size_t offset = (romBank & 0x1F) * 0x4000;
+		std::cout << "Read from ROM Bank " << (int)romBank << " at address " << std::hex << address << std::dec << std::endl;
+		return m_Rom[address - 0x4000 + offset];
 	}
 	else if (InRange(address, 0xA000, 0xBFFF))
 	{
-		/*if (!m_RamAccess)
-		{
-			return 0xFF;
-		}*/
-
-		uint8_t temp{};
 		if (ramEnabled)
 		{
-			temp = ramBank;
+			size_t ramAddress = (ramBank * 0x2000) + (address - 0xA000);
+			std::cout << "Read from RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << std::endl;
+			return ramBanks[ramAddress];
 		}
 		else
 		{
-			temp = 0x00;
+			// RAM is not enabled, return a default value
+			std::cout << "RAM not enabled at address " << std::hex << address << std::dec << std::endl;
+			return 0xFF;
 		}
-
-		int offset = address - 0xA000;
-		int lookup = (temp * 0x2000) + offset;
-
-		return ramBanks[lookup];
 	}
-
-	return m_Rom[address];
+	else
+	{
+		// Handle other cases
+		//std::cout << "Read from unhandled address " << std::hex << address << std::dec << std::endl;
+		return 0x00;
+	}
 }
 
-void MBC1::Write(uint16_t address, uint8_t data, uint8_t& romBank, uint8_t& ramBank, std::vector<uint8_t>& ramBanks, bool& ramEnabled)
+void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t mbc, bool& ramEnabled, uint8_t& romBank, uint8_t& ramBank, bool& isRam, std::vector<uint8_t>& ramBanks)
 {
-	if (address <= 0x1FFF)
+	//std::cout << "Start of write function\n";
+	if (InRange(address, 0x0000, 0x1FFF)) // Enable/Disable RAM
 	{
-		std::cout << "In first range write\n";
-		if ((data & 0x0A) > 0)
-		{
-			ramEnabled = true;
-		}
-		else
-		{
-			ramEnabled = false;
-		}
+		ramEnabled = (data & 0x0F) == 0x09;
+		/*std::cout << "WriteByte called for address " << std::hex << address << " with data " << (int)data << std::dec << std::endl;
+		std::cout << "Lower 4 bits of data: " << std::hex << (int)(data & 0x0F) << std::dec << std::endl;*/
+		std::cout << "RAM " << (ramEnabled ? "enabled" : "disabled") << " at address " << std::hex << address << std::dec << std::endl;
 	}
-	else if (InRange(address, (uint16_t)0x2000, (uint16_t)0x3FFF))
+	else if (InRange(address, 0x2000, 0x3FFF))
 	{
-		std::cout << "In second range write\n";
-		uint8_t bankNumber = data & 0x1F;
-
-		romBank = (romBank & 0xE0) | bankNumber;
-
-		switch (romBank)
+		romBank = (romBank & 0xE0) | (data & 0x1F);
+		if ((romBank & 0x1F) == 0 || (romBank & 0x1F) == 0x20 || (romBank & 0x1F) == 0x40)
 		{
-		case 0x00:
-		case 0x20:
-		case 0x40:
-		case 0x60:
 			romBank++;
-			break;
-		default:
-			break;
 		}
+		std::cout << "Write to ROM Bank " << (int)romBank << " at address " << std::hex << address << std::dec << " from range 2000 & 3FFF\n";
 	}
-	else if (InRange(address, (uint16_t)0x4000, (uint16_t)0x5FFF))
+	else if (InRange(address, 0x4000, 0x5FFF))
 	{
-		std::cout << "In third range write\n";
-		uint8_t bankNumber = data & 0x03;
-
-		if (ramEnabled)
+		if (isRam)
 		{
-			ramBank = bankNumber;
+			// If in RAM mode, set RAM bank number
+			ramBank = data & 0x03;
+			std::cout << "Write to RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << std::endl;
 		}
 		else
 		{
-			romBank = romBank | (bankNumber << 5);
-
-			switch (romBank)
-			{
-			case 0x00:
-			case 0x20:
-			case 0x40:
-			case 0x60:
-				romBank++;
-				break;
-			default:
-				break;
-			}
+			// If in ROM mode, set upper bits of ROM bank
+			romBank = (romBank & 0x1F) | ((data & 0x03) << 5);
+			std::cout << "Write to ROM Bank " << (int)romBank << " at address " << std::hex << address << std::dec << " from range 4000 & 5FFF\n";
 		}
 	}
-	else if (InRange(address, (uint16_t)0x6000, (uint16_t)0x7FFF))
+	else if (InRange(address, 0x6000, 0x7FFF)) // RAM/ROM Mode Select
 	{
-		std::cout << "In fourth range write\n";
-		if ((data >> 0) & 1)
-		{
-			ramEnabled = true;
-		}
-		else
-		{
-			ramEnabled = false;
-		}
+		isRam = (data & 0x01);
+		std::cout << "Write to RAM/ROM mode select: " << (isRam ? "RAM" : "ROM") << " at address " << std::hex << address << std::dec << std::endl;
 	}
-	else if (InRange(address, (uint16_t)0xA000, (uint16_t)0xBFFF))
+	else if (InRange(address, 0xA000, 0xBFFF)) // External RAM
 	{
-		std::cout << "In fifth range write\n";
 		if (ramEnabled)
 		{
-			int offset = address - 0xA000;
-			int lookup = (ramBank * 0x2000) + offset;
-			ramBanks[lookup] = data;
+			size_t ramAddress = (ramBank * 0x2000) + (address - 0xA000);
+			ramBanks[ramAddress] = data;
+			std::cout << "Write to external RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << std::endl;
 		}
 	}
-
-	//std::cout << "In no range write\n";
 }

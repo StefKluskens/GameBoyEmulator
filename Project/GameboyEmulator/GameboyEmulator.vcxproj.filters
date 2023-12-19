@@ -30,6 +30,12 @@
     <ClInclude Include="EmulatorClean.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryBankController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MBC1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -45,6 +51,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpcodeDefinitions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryBankController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MBC1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

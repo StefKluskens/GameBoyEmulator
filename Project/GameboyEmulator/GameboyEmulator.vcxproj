@@ -177,12 +177,16 @@
     <ClInclude Include="LR35902.h" />
     <ClInclude Include="Emulator.h" />
     <ClInclude Include="GameBoy.h" />
+    <ClInclude Include="MBC1.h" />
+    <ClInclude Include="MemoryBankController.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LR35902.cpp" />
     <ClCompile Include="Emulator.cpp" />
     <ClCompile Include="GameBoy.cpp" />
+    <ClCompile Include="MBC1.cpp" />
+    <ClCompile Include="MemoryBankController.cpp" />
     <ClCompile Include="OpcodeDefinitions.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

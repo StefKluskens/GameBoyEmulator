@@ -141,68 +141,106 @@ GameHeader GameBoy::ReadHeader() {
 
 uint8_t GameBoy::ReadMemory( const uint16_t pos ) {
 
-	if (pos <= 0x3FFF) { //ROM Bank 0
+	if (pos <= 0x3FFF) //ROM Bank 0
+	{ 
 		return Rom[pos];
 	}
+
 	if (pos == 0xFF00)
+	{
 		return GetJoypadState();
-	if (pos - 0x4000 <= 0x7FFF - 0x4000) { //ROM Bank x
+	}
+
+	if (InRange(pos, 0x4000, 0x7FFF)) //ROM Bank x
+	{
 		return Rom[pos + ((ActiveRomRamBank.GetRomBank() - 1) * 0x4000)];
 	}
-	if (InRange( pos, 0xA000, 0xBFFF )) { //RAM Bank x
+
+	if (InRange( pos, 0xA000, 0xBFFF )) //RAM Bank x
+	{ 
 		return RamBanks[(ActiveRomRamBank.GetRamBank() * 0x2000) + (pos - 0xA000)];
 	}
 
 	return Memory[pos];
 }
 
-void GameBoy::WriteMemory( uint16_t address, uint8_t data ) {
-	if (address <= 0x1FFF) { //Enable/Disable RAM
-		if (Mbc <= mbc1 || (Mbc == mbc2 && !(address & 0x100))) {
+void GameBoy::WriteMemory( uint16_t address, uint8_t data ) 
+{
+	if (address <= 0x1FFF) //Enable/Disable RAM
+	{ 
+		if (Mbc <= mbc1 || (Mbc == mbc2 && !(address & 0x100))) 
+		{
 			RamBankEnabled = ((data & 0xF) == 0xA);
 		}
 
-	} else if (InRange( address, (uint16_t)0x2000, (uint16_t)0x3FFF )) { //5 bits;Lower 5 bits of ROM Bank
+	} 
+	else if (InRange( address, (uint16_t)0x2000, (uint16_t)0x3FFF )) //5 bits;Lower 5 bits of ROM Bank
+	{ 
 		if (Mbc <= mbc1 || (Mbc == mbc2 && address & 0x100))
+		{
 			ActiveRomRamBank.romBank = ((data ? data : 1) & 0x1F);
+		}
 
-	} else if (InRange( address, (uint16_t)0x4000, (uint16_t)0x5FFF )) { //2 bits;Ram or upper 2 bits of ROM bank
+	} 
+	else if (InRange( address, (uint16_t)0x4000, (uint16_t)0x5FFF )) //2 bits;Ram or upper 2 bits of ROM bank
+	{ 
 		ActiveRomRamBank.ramOrRomBank = data;
 
-	} else if (InRange( address, (uint16_t)0x6000, (uint16_t)0x7FFF )) { //1 bit; Rom or Ram mode of ^
+	} 
+	else if (InRange( address, (uint16_t)0x6000, (uint16_t)0x7FFF )) //1 bit; Rom or Ram mode of ^
+	{ 
 		ActiveRomRamBank.isRam = data;
 
-	} else if (InRange( address, (uint16_t)0xA000, (uint16_t)0xBFFF )) { //External RAM
-		if (RamBankEnabled) {
+	} 
+	else if (InRange( address, (uint16_t)0xA000, (uint16_t)0xBFFF )) //External RAM
+	{ 
+		if (RamBankEnabled) 
+		{
 			RamBanks[(ActiveRomRamBank.GetRamBank() * 0x2000) + (address - 0xA000)] = data;
 		}
 
-	} else if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) { //Internal RAM
+	} 
+	else if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM
+	{ 
 		Memory[address] = data;
 
-	} else if (InRange( address, (uint16_t)0xE000, (uint16_t)0xFDFF )) { //ECHO RAM
+	} 
+	else if (InRange( address, (uint16_t)0xE000, (uint16_t)0xFDFF )) //ECHO RAM
+	{ 
 		Memory[address] = data;
 		Memory[address - 0x2000] = data;
 
-	} else if (InRange( address, (uint16_t)0xFEA0, (uint16_t)0xFEFF )) { //Mysterious Restricted Range
+	} 
+	else if (InRange( address, (uint16_t)0xFEA0, (uint16_t)0xFEFF )) //Mysterious Restricted Range
+	{ 
 
-	} else if (address == 0xFF04) { //Reset DIV
+	} 
+	else if (address == 0xFF04) //Reset DIV
+	{ 
 		DIVTimer = 0;
 		DivCycles = 0;
 
-	} else if (address == 0xFF07) { //Set timer Clock speed
+	} 
+	else if (address == 0xFF07) //Set timer Clock speed
+	{ 
 		TACTimer = data & 0x7;
 
-	} else if (address == 0xFF44) { //Horizontal scanline reset
+	} 
+	else if (address == 0xFF44) //Horizontal scanline reset
+	{ 
 		Memory[address] = 0;
 
-	} else if (address == 0xFF46) { //DMA transfer
+	} 
+	else if (address == 0xFF46) //DMA transfer
+	{ 
 		const uint16_t src{ uint16_t( uint16_t( data ) << 8 ) };
 		for (int i{ 0 }; i < 0xA0; ++i) {
 			WriteMemory( 0xFE00 + i, ReadMemory( src + i ) );
 		}
 
-	} else {
+	} 
+	else 
+	{
 		Memory[address] = data;
 	}
 }

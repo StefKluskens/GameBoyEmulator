@@ -5,6 +5,7 @@
 #include <vector>
 #include <bitset>
 
+class MemoryBankController;
 
 enum MBCs : uint8_t { none, mbc1, mbc2, mbc3, mbc4, mbc5 };
 enum Interupts : uint8_t { vBlank, lcdStat, timer, serial, joypad };
@@ -204,6 +205,11 @@ Bits 1-0 - Input Clock Select
 	bool UNUSED:1;
 
 	MBCs Mbc{};
+	MemoryBankController* m_MBC{};
+	bool m_UsingMBC{};
+
+	uint8_t m_RomBank{};
+	uint8_t m_RamBank{};
 
 
 	void HandleTimers( unsigned stepCycles, unsigned cycleBudget );

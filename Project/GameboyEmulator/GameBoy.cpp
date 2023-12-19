@@ -3,6 +3,7 @@
 #include <fstream>
 #include <time.h>
 #include <iostream>
+#include "MBC1.h"
 
 
 GameBoy::GameBoy( const std::string &gameFile ): GameBoy{} {
@@ -29,7 +30,7 @@ void GameBoy::LoadGame( const std::string &gbFile ) {
 	uint8_t banksNeeded{};
 	switch (header.ramSizeValue) {
 		case 0x00:
-			if (Mbc == mbc2)
+			//if (Mbc == mbc2)
 				banksNeeded = 1; //256 bytes
 			break;
 		case 0x01:
@@ -105,7 +106,8 @@ GameHeader GameBoy::ReadHeader() {
 		case 0x02:
 		case 0x03:
 			header.mbc = mbc1;
-			//std::cout << "Using MBC1\n";
+			m_MBC = new MBC1(Rom);
+			m_UsingMBC = true;
 			break;
 		case 0x05:
 		case 0x06:
@@ -130,6 +132,7 @@ GameHeader GameBoy::ReadHeader() {
 		case 0x1d:
 		case 0x1e:
 			header.mbc = mbc5;
+			break;
 		default:
 			assert( Rom[0x147] == 0x0 ); //if not 0x0 it's undocumented
 	}
@@ -139,7 +142,21 @@ GameHeader GameBoy::ReadHeader() {
 	return header;
 }
 
-uint8_t GameBoy::ReadMemory( const uint16_t pos ) {
+uint8_t GameBoy::ReadMemory( const uint16_t pos ) 
+{
+	if (m_UsingMBC && m_MBC)
+	{
+		/*uint8_t romBank = ActiveRomRamBank.GetRomBank();
+		uint8_t ramBank = ActiveRomRamBank.GetRamBank();*/
+		bool ramEnabled = RamBankEnabled;
+		auto result = m_MBC->Read(pos, m_RomBank, m_RamBank, RamBanks, ramEnabled);
+
+		/*ActiveRomRamBank.romBank = romBank;
+		ActiveRomRamBank.ramOrRomBank = ramBank;*/
+		RamBankEnabled = ramEnabled;
+		
+		return result;
+	}
 
 	if (pos <= 0x3FFF) //ROM Bank 0
 	{ 
@@ -166,41 +183,58 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos ) {
 
 void GameBoy::WriteMemory( uint16_t address, uint8_t data ) 
 {
-	if (address <= 0x1FFF) //Enable/Disable RAM
-	{ 
-		if (Mbc <= mbc1 || (Mbc == mbc2 && !(address & 0x100))) 
+	if (m_UsingMBC && m_MBC)
+	{
+		/*uint8_t romBank = ActiveRomRamBank.GetRomBank();
+		uint8_t ramBank = ActiveRomRamBank.GetRamBank();*/
+		bool ramEnabled = RamBankEnabled;
+
+		m_MBC->Write(address, data, m_RomBank, m_RamBank, RamBanks, ramEnabled);
+
+		/*ActiveRomRamBank.romBank = romBank;
+		ActiveRomRamBank.ramOrRomBank = ramBank;*/
+		RamBankEnabled = ramEnabled;
+	}
+	else
+	{
+		if (address <= 0x1FFF) //Enable/Disable RAM
 		{
-			RamBankEnabled = ((data & 0xF) == 0xA);
-		}
+			if (Mbc <= mbc1 || (Mbc == mbc2 && !(address & 0x100)))
+			{
+				RamBankEnabled = ((data & 0xF) == 0xA);
+			}
 
-	} 
-	else if (InRange( address, (uint16_t)0x2000, (uint16_t)0x3FFF )) //5 bits;Lower 5 bits of ROM Bank
-	{ 
-		if (Mbc <= mbc1 || (Mbc == mbc2 && address & 0x100))
+		}
+		else if (InRange(address, (uint16_t)0x2000, (uint16_t)0x3FFF)) //5 bits;Lower 5 bits of ROM Bank
 		{
-			ActiveRomRamBank.romBank = ((data ? data : 1) & 0x1F);
+			if (Mbc <= mbc1 || (Mbc == mbc2 && address & 0x100))
+			{
+				ActiveRomRamBank.romBank = ((data ? data : 1) & 0x1F);
+			}
+
 		}
-
-	} 
-	else if (InRange( address, (uint16_t)0x4000, (uint16_t)0x5FFF )) //2 bits;Ram or upper 2 bits of ROM bank
-	{ 
-		ActiveRomRamBank.ramOrRomBank = data;
-
-	} 
-	else if (InRange( address, (uint16_t)0x6000, (uint16_t)0x7FFF )) //1 bit; Rom or Ram mode of ^
-	{ 
-		ActiveRomRamBank.isRam = data;
-
-	} 
-	else if (InRange( address, (uint16_t)0xA000, (uint16_t)0xBFFF )) //External RAM
-	{ 
-		if (RamBankEnabled) 
+		else if (InRange(address, (uint16_t)0x4000, (uint16_t)0x5FFF)) //2 bits;Ram or upper 2 bits of ROM bank
 		{
-			RamBanks[(ActiveRomRamBank.GetRamBank() * 0x2000) + (address - 0xA000)] = data;
-		}
+			ActiveRomRamBank.ramOrRomBank = data;
 
-	} 
-	else if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM
+		}
+		else if (InRange(address, (uint16_t)0x6000, (uint16_t)0x7FFF)) //1 bit; Rom or Ram mode of ^
+		{
+			ActiveRomRamBank.isRam = data;
+
+		}
+		else if (InRange(address, (uint16_t)0xA000, (uint16_t)0xBFFF)) //External RAM
+		{
+			if (RamBankEnabled)
+			{
+				RamBanks[(ActiveRomRamBank.GetRamBank() * 0x2000) + (address - 0xA000)] = data;
+			}
+
+		}
+	}
+
+	
+	if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM
 	{ 
 		Memory[address] = data;
 

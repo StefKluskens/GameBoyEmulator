@@ -31,8 +31,7 @@ void GameBoy::LoadGame( const std::string &gbFile ) {
 	uint8_t banksNeeded{};
 	switch (header.ramSizeValue) {
 		case 0x00:
-			//if (Mbc == mbc2)
-				banksNeeded = 1; //256 bytes
+			banksNeeded = 1; //256 bytes
 			break;
 		case 0x01:
 		case 0x02:
@@ -42,7 +41,7 @@ void GameBoy::LoadGame( const std::string &gbFile ) {
 			banksNeeded = 4;
 
 	}
-	RamBanks.resize( banksNeeded * 0x2000 );
+	RamBanks.resize( banksNeeded * 0x2000, 0 );
 
 	if (m_MBC)
 	{

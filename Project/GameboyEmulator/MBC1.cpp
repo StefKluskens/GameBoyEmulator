@@ -34,7 +34,7 @@ uint8_t MBC1::ReadByte(const uint16_t address, uint8_t& romBank, uint8_t& ramBan
 		{
 			// RAM is not enabled, return a default value
 			std::cout << "RAM not enabled at address " << std::hex << address << std::dec << std::endl;
-			return 0xFF;
+			return 0x00;
 		}
 	}
 	else
@@ -50,47 +50,59 @@ void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t mbc, bool& ramEnabl
 	//std::cout << "Start of write function\n";
 	if (InRange(address, 0x0000, 0x1FFF)) // Enable/Disable RAM
 	{
-		ramEnabled = (data & 0x0F) == 0x09;
+		ramEnabled = !ramBanks.empty() && (((data & 0x0F) == 0x09) || ((data & 0x0F) == 0x00));
 		/*std::cout << "WriteByte called for address " << std::hex << address << " with data " << (int)data << std::dec << std::endl;
 		std::cout << "Lower 4 bits of data: " << std::hex << (int)(data & 0x0F) << std::dec << std::endl;*/
 		std::cout << "RAM " << (ramEnabled ? "enabled" : "disabled") << " at address " << std::hex << address << std::dec << std::endl;
+		return;
 	}
 	else if (InRange(address, 0x2000, 0x3FFF))
 	{
-		romBank = (romBank & 0xE0) | (data & 0x1F);
+		/*romBank = (romBank & 0xE0) | (data & 0x1F);
 		if ((romBank & 0x1F) == 0 || (romBank & 0x1F) == 0x20 || (romBank & 0x1F) == 0x40)
 		{
 			romBank++;
+		}*/
+		romBank = data & 0x1F;
+		if (romBank == 0)
+		{
+			romBank = 1;
 		}
 		std::cout << "Write to ROM Bank " << (int)romBank << " at address " << std::hex << address << std::dec << " from range 2000 & 3FFF\n";
+		return;
 	}
 	else if (InRange(address, 0x4000, 0x5FFF))
 	{
-		if (isRam)
-		{
-			// If in RAM mode, set RAM bank number
-			ramBank = data & 0x03;
-			std::cout << "Write to RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << std::endl;
-		}
-		else
-		{
-			// If in ROM mode, set upper bits of ROM bank
-			romBank = (romBank & 0x1F) | ((data & 0x03) << 5);
-			std::cout << "Write to ROM Bank " << (int)romBank << " at address " << std::hex << address << std::dec << " from range 4000 & 5FFF\n";
-		}
+		//if (isRam)
+		//{
+		//	// If in RAM mode, set RAM bank number
+		//	ramBank = data & 0x03;
+		//	std::cout << "Write to RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << std::endl;
+		//}
+		//else
+		//{
+		//	// If in ROM mode, set upper bits of ROM bank
+		//	romBank = (romBank & 0x1F) | ((data & 0x03) << 5);
+		//	std::cout << "Write to ROM Bank " << (int)romBank << " at address " << std::hex << address << std::dec << " from range 4000 & 5FFF\n";
+		//}
+		ramBank = data & 0x03;
+		std::cout << "Write to RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << " from range 4000 & 5FFF\n";
+		return;
 	}
 	else if (InRange(address, 0x6000, 0x7FFF)) // RAM/ROM Mode Select
 	{
-		isRam = (data & 0x01);
+		isRam = (data & 0x01) != 0;
 		std::cout << "Write to RAM/ROM mode select: " << (isRam ? "RAM" : "ROM") << " at address " << std::hex << address << std::dec << std::endl;
+		return;
 	}
 	else if (InRange(address, 0xA000, 0xBFFF)) // External RAM
 	{
 		if (ramEnabled)
 		{
 			size_t ramAddress = (ramBank * 0x2000) + (address - 0xA000);
-			ramBanks[ramAddress] = data;
+			ramBanks[(address - 0xA000)] = data;
 			std::cout << "Write to external RAM Bank " << (int)ramBank << " at address " << std::hex << address << std::dec << std::endl;
+			return;
 		}
 	}
 }

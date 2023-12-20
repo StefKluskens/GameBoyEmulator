@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <mutex>
 class MemoryBankController
 {
 public:
@@ -23,5 +24,7 @@ protected:
 
 	std::vector<uint8_t> m_Rom{};
 	std::vector<uint8_t> m_RamBanks{};
+
+	mutable std::mutex m_Mutex{};
 };
 

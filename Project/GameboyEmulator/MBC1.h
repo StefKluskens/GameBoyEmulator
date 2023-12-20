@@ -13,6 +13,9 @@ public:
 	MBC1& operator=(MBC1&& lhs) = delete; //Move Assignment
 
 	// Inherited via MemoryBankController
-	virtual uint8_t ReadByte(const uint16_t address, uint8_t& romBank, uint8_t& ramBank, const uint8_t* memory, const bool ramEnabled, const std::vector<uint8_t>& ramBanks, const bool isRam) const override;
-	virtual void WriteByte(uint16_t address, uint8_t data, uint8_t mbc, bool& ramEnabled, uint8_t& romBank, uint8_t& ramBank, bool& isRam, std::vector<uint8_t>& ramBanks) override;
+	virtual uint8_t ReadByte(const uint16_t address, const uint8_t* memory) const override;
+	virtual void WriteByte(uint16_t address, uint8_t data) override;
+
+private:
+	bool m_BankingMode{};
 };

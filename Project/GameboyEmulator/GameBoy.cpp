@@ -31,7 +31,10 @@ void GameBoy::LoadGame( const std::string &gbFile ) {
 	uint8_t banksNeeded{};
 	switch (header.ramSizeValue) {
 		case 0x00:
-			banksNeeded = 1; //256 bytes
+			if (Mbc == mbc2)
+			{
+				banksNeeded = 1; //256 bytes
+			}
 			break;
 		case 0x01:
 		case 0x02:
@@ -153,80 +156,28 @@ GameHeader GameBoy::ReadHeader() {
 
 uint8_t GameBoy::ReadMemory( const uint16_t pos ) 
 {
+	if (pos < 0x8000 || (pos >= 0xA000 && pos < 0xC000))
+	{
+		if (m_MBC)
+		{
+			return m_MBC->ReadByte(pos, Memory);
+		}
+	}
 	if (pos == 0xFF00)
 	{
 		return GetJoypadState();
 	}
 
-	if (m_MBC)
-	{
-		return m_MBC->ReadByte(pos, m_RomBank, m_RamBank, Memory, RamBankEnabled, RamBanks, m_IsRam);
-	}
-
-	//if (pos <= 0x3FFF) //ROM Bank 0
-	//{ 
-	//	return Rom[pos];
-	//}
-
-	//if (pos == 0xFF00)
-	//{
-	//	return GetJoypadState();
-	//}
-
-	//if (InRange(pos, 0x4000, 0x7FFF)) //ROM Bank x
-	//{
-	//	return Rom[pos + ((m_RomBank - 1) * 0x4000)];
-	//}
-
-	//if (InRange( pos, 0xA000, 0xBFFF )) //RAM Bank x
-	//{ 
-	//	return RamBanks[(m_RamBank * 0x2000) + (pos - 0xA000)];
-	//}
+	
 
 	return Memory[pos];
 }
 
 void GameBoy::WriteMemory( uint16_t address, uint8_t data ) 
 {
-	//std::cout << "Rom bank = " << unsigned(m_RomBank) << ", Ram bank = " << unsigned(m_RamBank) << '\n';
-	//if (address <= 0x1FFF) //Enable/Disable RAM
-	//{
-	//	if (Mbc <= mbc1 || (Mbc == mbc2 && !(address & 0x100)))
-	//	{
-	//		RamBankEnabled = ((data & 0xF) == 0xA);
-	//	}
-
-	//}
-	//else if (InRange(address, (uint16_t)0x2000, (uint16_t)0x3FFF)) //5 bits;Lower 5 bits of ROM Bank
-	//{
-	//	if (Mbc <= mbc1 || (Mbc == mbc2 && address & 0x100))
-	//	{
-	//		m_RomBank = ((data ? data : 1) & 0x1F);
-	//	}
-	//	
-	//}
-	//else if (InRange(address, (uint16_t)0x4000, (uint16_t)0x5FFF)) //2 bits;Ram or upper 2 bits of ROM bank
-	//{
-	//	m_RamBank = data;
-
-	//}
-	//else if (InRange(address, (uint16_t)0x6000, (uint16_t)0x7FFF)) //1 bit; Rom or Ram mode of ^
-	//{
-	//	m_IsRam = data;
-
-	//}
-	//else if (InRange(address, (uint16_t)0xA000, (uint16_t)0xBFFF)) //External RAM
-	//{
-	//	if (RamBankEnabled)
-	//	{
-	//		RamBanks[(m_RamBank * 0x2000) + (address - 0xA000)] = data;
-	//	}
-
-	//}
-	
 	if (m_MBC)
 	{
-		m_MBC->WriteByte(address, data, Mbc, RamBankEnabled, m_RomBank, m_RamBank, m_IsRam, RamBanks);
+		m_MBC->WriteByte(address, data);
 	}
 
 	if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM

@@ -208,7 +208,7 @@ Bits 1-0 - Input Clock Select
 	MemoryBankController* m_MBC{};
 	bool m_IsRam = true;
 
-	uint8_t m_RomBank{};
+	uint8_t m_RomBank{ 1 };
 	uint8_t m_RamBank{};
 
 

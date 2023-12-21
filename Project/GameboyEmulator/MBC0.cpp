@@ -27,7 +27,7 @@ uint8_t MBC0::ReadByte(const uint16_t address, const uint8_t* memory) const
 	return memory[address];
 }
 
-void MBC0::WriteByte(uint16_t address, uint8_t data)
+void MBC0::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)
 {
 	//if (address <= 0x1FFF) //Enable/Disable RAM
 	//{

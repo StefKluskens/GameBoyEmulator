@@ -13,6 +13,6 @@ public:
 	MBC0& operator=(MBC0&& lhs) = delete; //Move Assignment
 
 	uint8_t ReadByte(const uint16_t address, const uint8_t* memory) const override;
-	void WriteByte(uint16_t address, uint8_t data) override;
+	void WriteByte(uint16_t address, uint8_t data, uint8_t* memory) override;
 };
 

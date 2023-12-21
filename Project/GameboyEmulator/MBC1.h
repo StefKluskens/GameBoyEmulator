@@ -14,7 +14,7 @@ public:
 
 	// Inherited via MemoryBankController
 	virtual uint8_t ReadByte(const uint16_t address, const uint8_t* memory) const override;
-	virtual void WriteByte(uint16_t address, uint8_t data) override;
+	virtual void WriteByte(uint16_t address, uint8_t data, uint8_t* memory) override;
 
 private:
 	bool m_BankingMode{};

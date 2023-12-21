@@ -21,7 +21,7 @@ MemoryBankController::MemoryBankController(const std::vector<uint8_t>& rom)
 	case 0x02:
 		std::cout << "128KByte (8 banks)\n";
 		m_RomSize = 128 * 1024;
-		m_NumRomBanks = 6;
+		m_NumRomBanks = 8;
 		break;
 	case 0x03:
 		std::cout << "256KByte (16 banks)\n";

@@ -177,17 +177,19 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 		return GetJoypadState();
 	}
 
-	
-
 	return Memory[pos];
 }
 
 void GameBoy::WriteMemory( uint16_t address, uint8_t data ) 
 {
-	if (m_MBC)
+	if ((address >= 0x0000 && address <= 0x7FFF) || (address >= 0xA000 && address < 0xBFFF))
 	{
-		m_MBC->WriteByte(address, data);
+		if (m_MBC)
+		{
+			m_MBC->WriteByte(address, data, Memory);
+		}
 	}
+	
 
 	if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM
 	{ 

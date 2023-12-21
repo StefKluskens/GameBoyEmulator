@@ -6,50 +6,50 @@ MBC1::MBC1(const std::vector<uint8_t>& rom)
 	: MemoryBankController(rom)
 	, m_BankingMode(false)
 {
-	std::cout << "MBC1 constructor body\n";
+	//std::cout << "MBC1 constructor body\n";
 	std::cout << "Rom size: " << m_RomSize << '\n';
 	std::cout << "Num rom banks: " << m_NumRomBanks << '\n';
+	std::cout << "Rom bank: " << unsigned(m_RomBank) << "\n\n";
 	std::cout << "Ram size: " << m_RamSize << '\n';
 	std::cout << "Num ram banks: " << m_NumRamBanks << '\n';
+	std::cout << "Ram bank: " << unsigned(m_RamBank) << '\n';
+
+	m_RamBanks.resize(m_NumRamBanks * 8 * 1024, 0);
 }
 
 uint8_t MBC1::ReadByte(const uint16_t address, const uint8_t* memory) const
 {
 	if (address <= 0x3FFF)
 	{
-		//std::cout << "ReadByte - Range 0x3FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 		return m_Rom[address];
 	}
-	else if (address <= 0x7FFF)
+	else if (InRange(address, 0x4000, 0x7FFF))
 	{
-		//std::cout << "ReadByte - Range 0x7FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
-		uint32_t bankAddress = (m_RomBank % m_NumRomBanks) * 0x4000;
-		return m_Rom[bankAddress + (address - 0x4000)];
+		const uint32_t romBankOffset = (m_RomBank % m_NumRomBanks) * 0x4000;
+		const uint32_t romAddress = romBankOffset + (address - 0x4000);
+		return m_Rom[romAddress % m_RomSize];
+		
 	}
-	else
+	else if (InRange(address, 0xA000, 0xBFFF))
 	{
-		if (m_RamBankEnabled && !m_RamBanks.empty())
+		if (m_BankingMode)
 		{
-			uint32_t bankAddress = m_RamBank * 0x2000;
-			return m_RamBanks[bankAddress + (address - 0xA000)];
+			const uint32_t ramAddress = (m_RamBank * 0x2000) + (address - 0xA000);
+			return m_RamBanks[ramAddress % m_RamSize];
 		}
-		return 0x00;
 	}
-	//return memory[address];
+
+	return memory[address];
 }
 
-void MBC1::WriteByte(uint16_t address, uint8_t data)
+void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)
 {
-	//std::cout << "WriteByte - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 	if (address <= 0x1FFF)
 	{
-		//std::cout << "WriteByte - Range 0x1FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
-
-		m_RamBankEnabled = (data & 0x0F) == 0x0A;
+		m_RamBankEnabled = ((data & 0xF) == 0xA);
 	}
-	else if (address <= 0x3FFF)
+	else if (address >= 0x2000 && address <= 0x3FFF)
 	{
-		//std::cout << "WriteByte - Range 0x3FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 		data &= 0x1F;
 		if (data == 0)
 		{
@@ -58,32 +58,27 @@ void MBC1::WriteByte(uint16_t address, uint8_t data)
 
 		m_RomBank = (m_RomBank & 0xE0) | data;
 	}
-	else if (address <= 0x5FFF)
+	else if (address >= 0x4000 && address <= 0x5FFF)
 	{
-		//std::cout << "WriteByte - Range 0x5FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
-		data &= 0x03;
-
 		if (m_BankingMode)
 		{
-			m_RamBank = data;
+			m_RamBank = data & 0x03;
 		}
 		else
 		{
-			m_RomBank = (m_RomBank & 0x1F) | (data << 5);
+			m_RomBank = ((data & 0x03) << 5) | (m_RomBank & 0x1F);
 		}
 	}
-	else if (address <= 0x7FFF)
+	else if (address >= 0x6000 && address <= 0x7FFF)
 	{
-		//std::cout << "WriteByte - Range 0x7FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
-		m_BankingMode = data & 0x01;
+		m_BankingMode = (data & 0x01) != 0;
 	}
 	else if (address >= 0xA000 && address <= 0xBFFF)
 	{
-		//std::cout << "WriteByte - Range A000 - BFFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
-		if (m_RamBankEnabled)
+		if (m_RamBankEnabled && !m_RamBanks.empty())
 		{
-			uint32_t bankAddress = m_RamBank * 0x2000;
-			m_RamBanks[bankAddress + (address - 0xA000)] = data;
+			uint32_t ramAddress = m_RamBank * 0x2000;
+			m_RamBanks[ramAddress + (address - 0xA000)] = data;
 		}
 	}
 }

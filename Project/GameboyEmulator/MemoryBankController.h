@@ -12,7 +12,7 @@ public:
 	MemoryBankController& operator=(MemoryBankController&& lhs) = delete; //Move Assignment
 
 	virtual uint8_t ReadByte(const uint16_t address, const uint8_t* memory) const = 0;
-	virtual void WriteByte(uint16_t address, uint8_t data) = 0;
+	virtual void WriteByte(uint16_t address, uint8_t data, uint8_t* memory) = 0;
 
 	void SetRamBanks(std::vector<uint8_t>& ramBanks) { m_RamBanks = ramBanks; }
 

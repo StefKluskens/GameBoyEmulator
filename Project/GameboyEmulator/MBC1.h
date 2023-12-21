@@ -1,7 +1,7 @@
 #pragma once
 #include "MemoryBankController.h"
 
-class MBC1 : public MemoryBankController
+class MBC1 final : public MemoryBankController
 {
 public:
 	MBC1(const std::vector<uint8_t>& rom);

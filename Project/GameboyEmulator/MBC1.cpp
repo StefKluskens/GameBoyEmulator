@@ -43,13 +43,13 @@ void MBC1::WriteByte(uint16_t address, uint8_t data)
 	//std::cout << "WriteByte - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 	if (address <= 0x1FFF)
 	{
-		std::cout << "WriteByte - Range 0x1FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
+		//std::cout << "WriteByte - Range 0x1FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 
 		m_RamBankEnabled = (data & 0x0F) == 0x0A;
 	}
 	else if (address <= 0x3FFF)
 	{
-		std::cout << "WriteByte - Range 0x3FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
+		//std::cout << "WriteByte - Range 0x3FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 		data &= 0x1F;
 		if (data == 0)
 		{
@@ -60,7 +60,7 @@ void MBC1::WriteByte(uint16_t address, uint8_t data)
 	}
 	else if (address <= 0x5FFF)
 	{
-		std::cout << "WriteByte - Range 0x5FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
+		//std::cout << "WriteByte - Range 0x5FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 		data &= 0x03;
 
 		if (m_BankingMode)
@@ -74,12 +74,12 @@ void MBC1::WriteByte(uint16_t address, uint8_t data)
 	}
 	else if (address <= 0x7FFF)
 	{
-		std::cout << "WriteByte - Range 0x7FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
+		//std::cout << "WriteByte - Range 0x7FFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 		m_BankingMode = data & 0x01;
 	}
 	else if (address >= 0xA000 && address <= 0xBFFF)
 	{
-		std::cout << "WriteByte - Range A000 - BFFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
+		//std::cout << "WriteByte - Range A000 - BFFF - Address: " << std::hex << address << ", ROM Bank: " << (int)m_RomBank << ", RAM Bank: " << (int)m_RamBank << std::dec << std::endl;
 		if (m_RamBankEnabled)
 		{
 			uint32_t bankAddress = m_RamBank * 0x2000;

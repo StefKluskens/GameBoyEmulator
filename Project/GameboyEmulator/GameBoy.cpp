@@ -65,24 +65,29 @@ void GameBoy::Update() {
 
 	clock_t lastValidTick{ clock() / (CLOCKS_PER_SEC / 1000) };
 
-	while (IsRunning) {
+	while (IsRunning) 
+	{
 		const clock_t currentTicks = { clock() / (CLOCKS_PER_SEC / 1000) };
 
-		if (!IsPaused && (lastValidTick + timeAdded) < currentTicks) {	//I'm keeping fps in mind to ensure a smooth simulation, if we make the cyclebudget infinite, we have 0 control
-			if (AutoSpeed && (currentTicks - (lastValidTick + timeAdded)) >= .5f && SpeedMultiplier >= 2) {
+		if (!IsPaused && (lastValidTick + timeAdded) < currentTicks) //I'm keeping fps in mind to ensure a smooth simulation, if we make the cyclebudget infinite, we have 0 control
+		{	
+			if (AutoSpeed && (currentTicks - (lastValidTick + timeAdded)) >= .5f && SpeedMultiplier >= 2) 
+			{
 				--SpeedMultiplier;
 			}
 			CurrentCycles = 0;
 
 			const unsigned int cycleBudget{ unsigned int( ceil( 4194304.0f / fps ) ) * SpeedMultiplier }; //4194304 cycles can be done in a second (standard gameboy)
-			while (!IsPaused && CurrentCycles < cycleBudget) {
+			while (!IsPaused && CurrentCycles < cycleBudget) 
+			{
 				unsigned int stepCycles{ CurrentCycles };
 				Cpu.ExecuteNextOpcode();
 				stepCycles = CurrentCycles - stepCycles;
 
-				if ((IsCycleFrameBound & 2) && (CyclesFramesToRun - stepCycles > CyclesFramesToRun || !(CyclesFramesToRun -= stepCycles))
-				) //If we're cycle bound, subtract cycles and call pause if needed
+				if ((IsCycleFrameBound & 2) && (CyclesFramesToRun - stepCycles > CyclesFramesToRun || !(CyclesFramesToRun -= stepCycles))) //If we're cycle bound, subtract cycles and call pause if needed
+				{
 					(IsCycleFrameBound = 0, IsPaused = true);
+				}
 
 				HandleTimers( stepCycles, cycleBudget );
 				Cpu.HandleGraphics( stepCycles, cycleBudget,
@@ -90,7 +95,9 @@ void GameBoy::Update() {
 				                    ) ); //Draw if we don't care, are not frame bound or are on the final frame
 
 				if ((IF & 1) && (IsCycleFrameBound & 1) && !(--CyclesFramesToRun)) //If vblank interrupt and we're frame bound, subtract frames and call pause if needed
+				{
 					(IsCycleFrameBound = 0, IsPaused = true);
+				}
 
 				Cpu.HandleInterupts();
 			}
@@ -112,12 +119,14 @@ GameHeader GameBoy::ReadHeader() {
 
 	switch (Rom[0x147]) { //Set MBC chip version
 		case 0x00:
+			std::cout << "No MBC, using MBC0 class\n";
 			header.mbc = none;
 			m_MBC = new MBC0(Rom);
 			break;
 		case 0x01:
 		case 0x02:
 		case 0x03:
+			std::cout << "Using MBC1 class\n";
 			header.mbc = mbc1;
 			m_MBC = new MBC1(Rom);
 			break;
@@ -227,7 +236,7 @@ void GameBoy::WriteMemory( uint16_t address, uint8_t data )
 
 void GameBoy::WriteMemoryWord( const uint16_t pos, const uint16_t value ) {
 	WriteMemory( pos, value & 0xFF );
-	WriteMemory( pos + 1, value >> 8 );
+	WriteMemory(pos + 1, (value >> 8) & 0xFF);
 }
 
 void GameBoy::SetKey( const Key key, const bool pressed ) {

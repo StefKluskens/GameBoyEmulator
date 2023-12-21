@@ -24,10 +24,10 @@ protected:
 	std::vector<uint8_t> m_Rom{};
 	std::vector<uint8_t> m_RamBanks{};
 
-	uint32_t m_RomSize;
-	uint32_t m_NumRomBanks;
-	uint32_t m_RamSize;
-	uint32_t m_NumRamBanks;
+	uint32_t m_RomSize{};
+	uint32_t m_NumRomBanks{};
+	uint32_t m_RamSize{};
+	uint32_t m_NumRamBanks{};
 
 	uint8_t m_RomBank{ 1 };
 	uint8_t m_RamBank{};

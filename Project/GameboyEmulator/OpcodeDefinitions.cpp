@@ -5,9 +5,12 @@
 
 #pragma region ALU
 //Add Carry
-FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry ) {
-
-	if (addCarry && Register.carryF) ++toAdd;
+FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry ) 
+{
+	if (addCarry && Register.carryF) 
+	{
+		++toAdd;
+	}
 
 	Register.halfCarryF = (((Register.a & 0xf) + (toAdd & 0xf)) & 0x10);
 	Register.carryF = (uint16_t( Register.a + toAdd ) > 0xFF);
@@ -22,17 +25,23 @@ FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry ) {
  * \param addToHL If False, it'll be added to SP and toAdd will be 8 bits signed
  */
 FINLINE void LR35902::ADD16( bool addToHL, uint16_t toAdd ) {
-	if (addToHL) {
+	if (addToHL) 
+	{
 		Register.halfCarryF = (((Register.hl() & 0xfff) + (toAdd & 0xfff)) & 0x1000); //h is always 3->4 in the high byte
 		Register.carryF = ((uint32_t( Register.hl() ) + toAdd) > 0xFFFF);
 
 		Register.hl( Register.hl() + toAdd );
-	} else {
+	} 
+	else 
+	{
 		const int8_t toAddS{ int8_t( toAdd ) };
-		if (toAddS >= 0) { //Positive
+		if (toAddS >= 0) //Positive
+		{ 
 			Register.halfCarryF = (((Register.sp & 0xfff) + (toAdd & 0xfff)) & 0x1000); //h is always 3->4 in the high byte
 			Register.carryF = ((uint32_t( Register.sp ) + toAdd) > 0xFFFF);
-		} else { //Negative
+		} 
+		else //Negative
+		{ 
 			Register.halfCarryF = (int16_t( Register.sp & 0xf ) + (toAddS & 0xf)) <
 			                      0; // Check if subtracting the last 4 bits goes negative, indicating a borrow //Could also do ((Register.sp+toAddS)^toAddS^Register.sp)&0x10
 			Register.carryF = ((uint32_t( Register.sp ) + toAddS) < 0); //If we go negative, it would cause an underflow on unsigned, setting the carry

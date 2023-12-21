@@ -40,7 +40,7 @@ struct Registers final {
 
 	void af( uint16_t value ) {
 		a = value >> 8;
-		f = value & 0xF0;
+		f = value & 0xFF;
 	}
 
 	uint16_t bc() const { return ((uint16_t)b << 8) | c; }

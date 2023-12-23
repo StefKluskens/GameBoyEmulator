@@ -177,6 +177,13 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 		return GetJoypadState();
 	}
 
+	if (Memory[0xff02] == 0x81)
+	{
+		char c = Memory[0xff01];
+		printf("%c", c);
+		Memory[0xff02] = 0x0;
+	}
+
 	return Memory[pos];
 }
 

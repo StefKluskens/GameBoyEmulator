@@ -4,6 +4,10 @@
 //Add the signature to LR35902.h
 
 #pragma region ALU
+FINLINE void LR35902::ADDHL(uint8_t toAdd)
+{
+	ADD16(true, toAdd);
+}
 //Add Carry
 FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry ) 
 {
@@ -153,6 +157,12 @@ FINLINE void LR35902::LD( uint8_t &dest, const uint8_t data ) {
 FINLINE void LR35902::LD( uint16_t *const dest, const uint16_t data ) { *dest = data; }
 FINLINE void LR35902::LD( const uint16_t destAddrs, const uint8_t data ) { Gameboy.WriteMemory( destAddrs, data ); }
 
+//FINLINE void LR35902::LD(uint16_t& high, uint16_t& low)
+//{
+//	low = Gameboy.ReadMemory(Register.pc++);
+//	high = Gameboy.ReadMemory(Register.pc++);
+//}
+
 FINLINE void LR35902::PUSH( const uint16_t data ) { //little endian
 	--Register.sp;
 	Gameboy.WriteMemory( Register.sp, data >> 8 );
@@ -167,6 +177,20 @@ FINLINE void LR35902::POP( uint16_t &dest ) {
 #pragma endregion
 
 #pragma region Rotates and Shifts
+//RotateLeft
+FINLINE void LR35902::RL(uint8_t& toRotate)
+{
+	Register.f = 0;
+
+	const bool msb = bool(toRotate & 0x80);
+	const bool originalCarry = Register.carryF;
+
+	toRotate <<= 1;
+	toRotate |= uint8_t(originalCarry);
+	Register.carryF = msb;
+	Register.zeroF = !toRotate;
+}
+
 //RotateLeftCarry
 FINLINE void LR35902::RLC( uint8_t &toRotate ) {
 	Register.f = 0;
@@ -189,11 +213,34 @@ FINLINE void LR35902::RR( uint8_t &toRotate ) {
 	Register.zeroF = !toRotate;
 }
 
+//RotateRightCarry
+FINLINE void LR35902::RRCarry(uint8_t& toRotate)
+{
+	const bool lsb = bool(toRotate & 0x1);
+
+	toRotate >>= 1;
+	toRotate |= (lsb << 7);
+
+	Register.f = 0;
+	Register.carryF = lsb;
+	Register.zeroF = !toRotate;
+}
+
 //ShiftLeftArithmetic (even though it's a logical shift..)
 FINLINE void LR35902::SLA( uint8_t &toShift ) {
 	Register.f = 0;
 	Register.carryF = toShift & 0x80;
 	toShift <<= 1;
+	Register.zeroF = !toShift;
+}
+
+//ShiftRight
+FINLINE void LR35902::SRA(uint8_t& toShift)
+{
+	Register.f = 0;
+	const bool signBit = toShift & 0x80;
+	toShift = (toShift >> 1) | signBit;
+	Register.carryF = toShift & 0x1;
 	Register.zeroF = !toShift;
 }
 

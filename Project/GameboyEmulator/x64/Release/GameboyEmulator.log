@@ -1,9 +1,13 @@
 ﻿  pch.cpp
   LR35902.cpp
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(242,29): warning C4805: '|': unsafe mix of type 'int' and type 'const bool' in operation
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(449,30): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(1191,31): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
   Emulator.cpp
   GameBoy.cpp
   MBC0.cpp
   MBC1.cpp
   MemoryBankController.cpp
   OpcodeDefinitions.cpp
-  GameboyEmulator.vcxproj -> C:\Users\klusk\Documents\DAE\Year3\GameBoyEmulator\Project\x64\Release\GameboyEmulator.lib
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(242,29): warning C4805: '|': unsafe mix of type 'int' and type 'const bool' in operation
+  GameboyEmulator.vcxproj -> C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\x64\Release\GameboyEmulator.lib

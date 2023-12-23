@@ -32,4 +32,5 @@ protected:
 	uint8_t m_RomBank{ 1 };
 	uint8_t m_RamBank{};
 	bool m_RamBankEnabled{};
+	bool m_IsRam{};
 };

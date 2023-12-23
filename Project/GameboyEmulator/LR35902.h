@@ -113,6 +113,7 @@ private:
 	bool InteruptChangePending{ false }; ///< When an interupt change is requested, it gets pushed after the next opcode\note lsb==Disable, msb==Enable
 
 	void ExecuteOpcode( uint8_t opcode );
+	uint8_t ExecuteExtendedOpcode( uint8_t opcode );
 	void ConfigureLCDStatus();
 	void DrawLine() const;
 	void DrawBackground() const;
@@ -125,7 +126,18 @@ private:
 			
 	// ReSharper disable CppInconsistentNaming
 #pragma region OPCODES
+
+	//Loads
+	void LD(uint8_t& dest, const uint8_t data);
+	void LD(uint16_t* const dest, const uint16_t data);
+	void LD(const uint16_t destAddrs, const uint8_t data);
+	//void LD(uint16_t& high, uint16_t& low);
+
+
+
 	void ADD( uint8_t toAdd ) { return ADC( toAdd, false ); }
+	void ADDHL(uint8_t toAdd);
+
 	void SUB( uint8_t toSub ) { return SBC( toSub, false ); }
 
 	void ADC( uint8_t toAdd, bool addCarry = true );
@@ -142,7 +154,7 @@ private:
 	void INC( uint8_t &toInc );
 	void JP( const uint16_t address, const bool doJump = true, bool handleCycles = true );
 	void JR( int8_t offset, bool doJump = true );
-	void LD( uint8_t &dest, const uint8_t data );
+	
 	void NOP();
 	void OR( const uint8_t toOr );
 	void POP( uint16_t &dest );
@@ -150,22 +162,25 @@ private:
 	void RES( const uint8_t bit, uint8_t &data );
 	void RET( bool doReturn = true, bool handleCycles = true );
 	void RETI();
+	void RL( uint8_t &toRotate );
 	void RLC( uint8_t &toRotate );
 	void RR( uint8_t &toRotate );
+	void RRCarry( uint8_t &toRotate );
 	void RST( const uint8_t address );
-	void LD( uint16_t *const dest, const uint16_t data );
+	
 	void EI();
 	void SCF();
 	void SET( const uint8_t bit, uint8_t &data );
 	void SLA( uint8_t &toShift );
 	void SBC( uint8_t toSub, bool subCarry = true );
+	void SRA( uint8_t &toShift );
 	void SRL( uint8_t &toShift );
 	void STOP();
 	void SWAP( uint8_t &data );
 	void DEC( uint16_t &toDec );
 	void XOR( const uint8_t toXor );
 	void INC( uint16_t &toInc );
-	void LD( const uint16_t destAddrs, const uint8_t data );
+	
 	void DAA();
 #pragma endregion
 	// ReSharper restore CppInconsistentNaming

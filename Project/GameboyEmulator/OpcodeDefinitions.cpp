@@ -4,10 +4,54 @@
 //Add the signature to LR35902.h
 
 #pragma region ALU
-FINLINE void LR35902::ADDHL(uint8_t toAdd)
-{
-	ADD16(true, toAdd);
-}
+//FINLINE void LR35902::ADD(uint8_t toAdd)
+//{
+//	auto result = Register.a + toAdd;
+//
+//	Register.halfCarryF = ((Register.a & 0xF) + (toAdd & 0xF)) > 0xF;
+//	Register.carryF = (result > 0xFF);
+//	Register.zeroF = ((result & 0xFF) == 0);
+//	Register.subtractF = false;
+//
+//	Register.a = (result & 0xFF);
+//}
+//
+//FINLINE void LR35902::ADDHL(uint8_t toAdd)
+//{
+//	ADD16(true, toAdd);
+//}
+//
+//FINLINE void LR35902::ADD(uint16_t* destination, uint16_t toAdd)
+//{
+//	uint32_t result = *destination + toAdd;
+//
+//	Register.carryF = (result > 0xFFFF);
+//	Register.halfCarryF = ((*destination & 0x0FFF) + (toAdd & 0x0FFF)) > 0x0FFF;
+//
+//	*destination = (uint16_t)result;
+//
+//	Register.subtractF = false;
+//}
+
+//FINLINE void LR35902::SUB(uint8_t toSub)
+//{
+//	Register.halfCarryF = ((Register.a - toSub) ^ toSub ^ Register.a) & 0x10;
+//	Register.carryF = (int8_t(Register.a) - toSub) < 0;
+//	Register.zeroF = !Register.a;
+//	Register.subtractF = 1;
+//	Register.a -= toSub;
+//
+//	/*uint8_t result = Register.a - toSub;
+//	uint8_t bits = Register.a ^ toSub ^ result;
+//
+//	Register.a = result;
+//
+//	Register.subtractF = 1;
+//	Register.zeroF = (Register.a == 0);
+//	Register.carryF = ((bits & 0x100) != 0);
+//	Register.halfCarryF = ((bits & 0x10) != 0);*/
+//}
+
 //Add Carry
 FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry ) 
 {
@@ -23,6 +67,55 @@ FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry )
 
 	Register.zeroF = !Register.a;
 	Register.subtractF = 0;
+
+	//if (addCarry && Register.carryF)
+	//{
+	//	++toAdd;
+	//}
+	////uint8_t carry = ( Register.carryF) ? 1 : 0;
+	//uint8_t result = Register.a + toAdd;
+
+	//Register.zeroF = (result == 0);
+	//Register.carryF = (result > 0xFF);
+	//Register.halfCarryF = ((Register.a & 0x0F) + (toAdd & 0x0F)) > 0x0F;
+	//Register.subtractF = 0;
+
+	//Register.a = result;
+
+	//uint8_t before = toAdd;
+	//uint8_t adding = toAdd;
+
+	//// are we also adding the carry flag?
+	//if (addCarry)
+	//{
+	//	if (TestBit(Register.f, 4))
+	//	{
+	//		adding++;
+	//	}
+	//}
+
+	//toAdd += adding;
+
+	//// set the flags
+	//Register.f = 0;
+
+	//if (toAdd == 0)
+	//{
+	//	Register.f = BitSet(Register.f, 7);
+	//}
+
+	//uint16_t htest = (before & 0xF);
+	//htest += (adding & 0xF);
+
+	//if (htest > 0xF)
+	//{
+	//	Register.f = BitSet(Register.f, 5);
+	//}
+
+	//if ((before + adding) > 0xFF)
+	//{
+	//	Register.f = BitSet(Register.f, 4);
+	//}
 }
 
 /**
@@ -31,7 +124,7 @@ FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry )
 FINLINE void LR35902::ADD16( bool addToHL, uint16_t toAdd ) {
 	if (addToHL) 
 	{
-		Register.halfCarryF = (((Register.hl() & 0xfff) + (toAdd & 0xfff)) & 0x1000); //h is always 3->4 in the high byte
+		Register.halfCarryF = (((Register.hl() & 0xfff) + (toAdd & 0xfff)) & 0x0FFF); //h is always 3->4 in the high byte
 		Register.carryF = ((uint32_t( Register.hl() ) + toAdd) > 0xFFFF);
 
 		Register.hl( Register.hl() + toAdd );
@@ -56,15 +149,21 @@ FINLINE void LR35902::ADD16( bool addToHL, uint16_t toAdd ) {
 	Register.subtractF = 0; //even tho we might've done a subtraction...
 }
 
-FINLINE void LR35902::SBC( uint8_t toSub, bool subCarry ) {
+FINLINE void LR35902::SBC( uint8_t toSub, bool subCarry ) 
+{
+	uint8_t carry = (Register.f & Register.carryF) ? 1 : 0;
 
-	if (subCarry && Register.carryF) ++toSub;
+	if (subCarry)
+		toSub += carry;
 
-	Register.halfCarryF = ((Register.a - toSub) ^ toSub ^ Register.a) & 0x10;
-	Register.carryF = (int8_t( Register.a ) - toSub) < 0;
-	Register.zeroF = !Register.a;
-	Register.subtractF = 1;
-	Register.a -= toSub;
+	int16_t result = Register.a - toSub - carry;
+
+	Register.halfCarryF = ((Register.a & 0x0F) - (toSub & 0x0F) - carry) < 0;
+	Register.carryF = (result < 0);
+	Register.zeroF = ((result & 0xFF) == 0);
+	Register.subtractF = true;
+
+	Register.a = (result & 0xFF);
 }
 
 FINLINE void LR35902::OR( const uint8_t toOr ) {
@@ -121,28 +220,110 @@ FINLINE void LR35902::CP( uint8_t toCompare ) {
 }
 
 //DecimalAdjustA, implementation heavily inspired by Richeson's paper
-FINLINE void LR35902::DAA() {
-	int newA{ Register.a };
+FINLINE void LR35902::DAA() 
+{
+	//int newA{ Register.a };
 
-	if (!Register.subtractF) {
+	//if (!Register.subtractF) 
+	//{
+	//	if (Register.halfCarryF || (newA & 0xF) > 9) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
+	//	{
+	//		newA += 0x06; //Overflow (15-9)
+	//	}
 
-		if (Register.halfCarryF || (newA & 0xF) > 9) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
-			newA += 6; //Overflow (15-9)
-		if (Register.carryF || (newA & 0xF0) > 0x90)
-			newA += 0x60; //same overflow for the higher nibble
-	} else { //The last operation was a subtraction, we need to honor this
-		if (Register.halfCarryF) {
-			newA -= 6;
-			newA &= 0xFF;
+	//	if (Register.carryF || (newA > 0x90))
+	//	{
+	//		newA += 0x60; //same overflow for the higher nibble
+	//	}
+	//} 
+	//else //The last operation was a subtraction, we need to honor this
+	//{ 
+	//	if (Register.halfCarryF) 
+	//	{
+	//		/*newA -= 0x06;
+	//		newA &= 0xFF;*/
+	//		newA = (newA - 0x06) & 0xFF;
+	//	}
+	//	if (Register.carryF)
+	//	{
+	//		newA -= 0x60;
+	//	}
+	//}
+
+	//Register.halfCarryF = false;
+
+	//if ((newA & 0x100) == 0x100)
+	//{
+	//	Register.carryF = true;
+	//}
+
+	//newA &= 0xFF;
+
+	////Register.carryF = (newA > 0xFF);
+	//Register.a = (uint8_t)newA;
+	//Register.zeroF = (Register.a == 0);
+
+
+	uint8_t newA{ Register.a };
+
+	if (Register.subtractF)
+	{
+		if (Register.carryF) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
+		{
+			newA -= 0x60; //Overflow (15-9)
 		}
-		if (Register.carryF)
-			newA -= 0x60;
+
+		if (Register.halfCarryF)
+		{
+			newA -= 0x6; //same overflow for the higher nibble
+		}
+	}
+	else //The last operation was a subtraction, we need to honor this
+	{
+		if (Register.carryF || newA > 0x99)
+		{
+			newA += 0x60;
+			Register.carryF = true;
+		}
+		if (Register.halfCarryF || (newA & 0xF) > 0x9)
+		{
+			newA += 0x6;
+		}
 	}
 
+	Register.a = newA;
+	Register.carryF = !newA;
 	Register.halfCarryF = false;
-	Register.carryF = (newA > 0xFF);
-	Register.a = (uint8_t)newA;
-	Register.zeroF = !Register.a;
+}
+FINLINE void LR35902::POP_AF()
+{
+	//Register.af() = Gameboy->
+	//PopFromStack(Register.af());
+	//Register.f &= 0F0;
+
+	Register.af(Gameboy.ReadMemoryWord(Register.sp));
+	Register.f &= 0xF0;
+	
+}
+FINLINE void LR35902::ClearFlags()
+{
+	Register.carryF = 0;
+	Register.halfCarryF = 0;
+	Register.subtractF = 0;
+	Register.zeroF = 0;
+}
+
+FINLINE bool LR35902::TestBit(uint8_t reg, size_t pos)
+{
+	uint8_t lMsk = 1 << pos;
+	return (reg & lMsk) ? true: false;
+}
+
+FINLINE uint8_t LR35902::BitSet(uint8_t reg, size_t pos)
+{
+	uint8_t lMsk = 1 << pos;
+	reg |= lMsk;
+	return reg;
 }
 #pragma endregion
 
@@ -156,6 +337,18 @@ FINLINE void LR35902::LD( uint8_t &dest, const uint8_t data ) {
 
 FINLINE void LR35902::LD( uint16_t *const dest, const uint16_t data ) { *dest = data; }
 FINLINE void LR35902::LD( const uint16_t destAddrs, const uint8_t data ) { Gameboy.WriteMemory( destAddrs, data ); }
+
+FINLINE void LR35902::ADD(uint8_t toAdd)
+{
+	auto result = Register.a + toAdd;
+
+	Register.halfCarryF = ((Register.a & 0xF) + (toAdd & 0xF)) > 0xF;
+	Register.carryF = (result > 0xFF);
+	Register.zeroF = ((result & 0xFF) == 0);
+	Register.subtractF = false;
+
+	Register.a = (result & 0xFF);
+}
 
 //FINLINE void LR35902::LD(uint16_t& high, uint16_t& low)
 //{
@@ -180,15 +373,36 @@ FINLINE void LR35902::POP( uint16_t &dest ) {
 //RotateLeft
 FINLINE void LR35902::RL(uint8_t& toRotate)
 {
-	Register.f = 0;
+	/*Register.f = 0;
 
 	const bool msb = bool(toRotate & 0x80);
 	const bool originalCarry = Register.carryF;
 
 	toRotate <<= 1;
 	toRotate |= uint8_t(originalCarry);
-	Register.carryF = msb;
-	Register.zeroF = !toRotate;
+	Register.carryF = msb;*/
+
+	bool isCarrySet = TestBit(Register.f, 4);
+	bool isMSBSet = TestBit(toRotate, 7);
+
+	Register.f = 0;
+
+	toRotate <<= 1;
+
+	if (isMSBSet)
+	{
+		Register.f = BitSet(Register.f, 4);
+	}
+
+	if (isCarrySet)
+	{
+		toRotate = BitSet(toRotate, 0);
+	}
+
+	if (toRotate == 0)
+	{
+		Register.f = BitSet(Register.f, 7);
+	}
 }
 
 //RotateLeftCarry
@@ -228,20 +442,58 @@ FINLINE void LR35902::RRCarry(uint8_t& toRotate)
 
 //ShiftLeftArithmetic (even though it's a logical shift..)
 FINLINE void LR35902::SLA( uint8_t &toShift ) {
-	Register.f = 0;
+	/*Register.f = 0;
 	Register.carryF = toShift & 0x80;
 	toShift <<= 1;
-	Register.zeroF = !toShift;
+	Register.zeroF = !toShift;*/
+
+	bool isMSBSet = TestBit(toShift, 7);
+
+	toShift <<= 1;
+
+	Register.f = 0;
+
+	if (isMSBSet)
+	{
+		Register.f = BitSet(Register.f, 4);
+	}
+
+	if (toShift == 0)
+	{
+		Register.f = BitSet(Register.f, 7);
+	}
 }
 
 //ShiftRight
 FINLINE void LR35902::SRA(uint8_t& toShift)
 {
-	Register.f = 0;
+	/*Register.f = 0;
 	const bool signBit = toShift & 0x80;
 	toShift = (toShift >> 1) | signBit;
 	Register.carryF = toShift & 0x1;
-	Register.zeroF = !toShift;
+	Register.zeroF = !toShift;*/
+
+	bool isLSBSet = TestBit(toShift, 0);
+	bool isMSBSet = TestBit(toShift, 7);
+
+	Register.f = 0;
+
+	toShift >>= 1;
+
+	if (isMSBSet)
+	{
+		toShift = BitSet(toShift, 7);
+	}
+
+	if (isLSBSet)
+	{
+		Register.f = BitSet(Register.f, 4);
+	}
+
+	if (toShift == 0)
+	{
+		Register.f = BitSet(Register.f, 7);
+	}
 }
 
 //ShiftRightLogical

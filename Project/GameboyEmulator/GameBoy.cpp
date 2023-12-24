@@ -126,9 +126,9 @@ GameHeader GameBoy::ReadHeader() {
 		case 0x01:
 		case 0x02:
 		case 0x03:
-			std::cout << "Using MBC1 class\n";
+			//std::cout << "Using MBC1 class\n";
 			header.mbc = mbc1;
-			m_MBC = new MBC1(Rom);
+			m_MBC = new MBC0(Rom);
 			break;
 		case 0x05:
 		case 0x06:
@@ -165,17 +165,43 @@ GameHeader GameBoy::ReadHeader() {
 
 uint8_t GameBoy::ReadMemory( const uint16_t pos ) 
 {
-	if (pos < 0x8000 || (pos >= 0xA000 && pos < 0xC000))
+	if (pos == 0xFF00)
+	{
+		return GetJoypadState();
+	}
+	else if (pos == 0xFF04)
+	{
+		return DIVTimer;
+	}
+	else if (pos == 0xFF05)
+	{
+		return TIMATimer;
+	}
+	else if (pos == 0xFF06)
+	{
+		return TMATimer;
+	}
+	else if (pos == 0xFF07)
+	{
+		return TACTimer;
+	}
+	else if (pos == 0xFF0F)
+	{
+		return Memory[0xFF0F];
+	}
+	/*else if (pos < 0x100)
+	{
+		return Memory[pos];
+	}*/
+	else if (pos < 0x8000 || (pos >= 0xA000 && pos <= 0xBFFF))
 	{
 		if (m_MBC)
 		{
 			return m_MBC->ReadByte(pos, Memory);
 		}
 	}
-	if (pos == 0xFF00)
-	{
-		return GetJoypadState();
-	}
+
+	
 
 	if (Memory[0xff02] == 0x81)
 	{
@@ -183,6 +209,8 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 		printf("%c", c);
 		Memory[0xff02] = 0x0;
 	}
+
+	
 
 	return Memory[pos];
 }

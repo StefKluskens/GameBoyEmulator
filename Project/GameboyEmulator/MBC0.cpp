@@ -9,22 +9,28 @@ MBC0::MBC0(const std::vector<uint8_t>& rom)
 
 uint8_t MBC0::ReadByte(const uint16_t address, const uint8_t* memory) const
 {
-	if (address <= 0x3FFF) //ROM Bank 0
+	//if (address <= 0x3FFF) //ROM Bank 0
+	//{
+	//	return m_Rom[address];
+	//}
+
+	//if (InRange(address, 0x4000, 0x7FFF)) //ROM Bank x
+	//{
+	//	return m_Rom[address + ((m_RomBank - 1) * 0x4000)];
+	//}
+
+	//if (InRange(address, 0xA000, 0xBFFF)) //RAM Bank x
+	//{
+	//	return m_RamBanks[(m_RamBank * 0x2000) + (address - 0xA000)];
+	//}
+
+	//return memory[address];
+
+	if (address < 0x8000)
 	{
 		return m_Rom[address];
 	}
-
-	if (InRange(address, 0x4000, 0x7FFF)) //ROM Bank x
-	{
-		return m_Rom[address + ((m_RomBank - 1) * 0x4000)];
-	}
-
-	if (InRange(address, 0xA000, 0xBFFF)) //RAM Bank x
-	{
-		return m_RamBanks[(m_RamBank * 0x2000) + (address - 0xA000)];
-	}
-
-	return memory[address];
+	return 0;
 }
 
 void MBC0::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)

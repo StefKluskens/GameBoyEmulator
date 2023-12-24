@@ -35,6 +35,7 @@ struct Registers final {
 
 	uint8_t h{}, l{};
 	uint16_t pc{}, sp{};
+	uint16_t hl_2{ hl()};
 
 	uint16_t af() const { return ((uint16_t)a << 8) | f; }
 
@@ -131,12 +132,9 @@ private:
 	void LD(uint8_t& dest, const uint8_t data);
 	void LD(uint16_t* const dest, const uint16_t data);
 	void LD(const uint16_t destAddrs, const uint8_t data);
-	//void LD(uint16_t& high, uint16_t& low);
 
-
-
-	void ADD( uint8_t toAdd ) { return ADC( toAdd, false ); }
-	void ADDHL(uint8_t toAdd);
+	//void ADD(uint8_t toAdd) { return ADC(toAdd, false); }
+	void ADD(uint8_t toAdd);
 
 	void SUB( uint8_t toSub ) { return SBC( toSub, false ); }
 
@@ -162,7 +160,7 @@ private:
 	void RES( const uint8_t bit, uint8_t &data );
 	void RET( bool doReturn = true, bool handleCycles = true );
 	void RETI();
-	void RL( uint8_t &toRotate );
+	void RL( uint8_t &toRotate);
 	void RLC( uint8_t &toRotate );
 	void RR( uint8_t &toRotate );
 	void RRCarry( uint8_t &toRotate );
@@ -171,7 +169,7 @@ private:
 	void EI();
 	void SCF();
 	void SET( const uint8_t bit, uint8_t &data );
-	void SLA( uint8_t &toShift );
+	void SLA(uint8_t& toShift);
 	void SBC( uint8_t toSub, bool subCarry = true );
 	void SRA( uint8_t &toShift );
 	void SRL( uint8_t &toShift );
@@ -182,6 +180,12 @@ private:
 	void INC( uint16_t &toInc );
 	
 	void DAA();
+
+	void POP_AF();
+
+	void ClearFlags();
+	bool TestBit(uint8_t reg, size_t pos);
+	uint8_t BitSet(uint8_t reg, size_t pos);
 #pragma endregion
 	// ReSharper restore CppInconsistentNaming
 };

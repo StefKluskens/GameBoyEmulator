@@ -17,5 +17,10 @@ public:
 	virtual void WriteByte(uint16_t address, uint8_t data, uint8_t* memory) override;
 
 private:
+	//If true, RAM-banking
+	//If false, ROM-banking
 	bool m_BankingMode{};
+
+	uint16_t m_RomOffset{};
+	uint16_t m_RamOffset{};
 };

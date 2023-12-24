@@ -17,7 +17,7 @@ SDL_Texture* textures[INSTANCECOUNT];
 //gbee::Emulator emu{"Tetris(JUE)(V1.1)[!].gb", INSTANCECOUNT};
 //gbee::Emulator emu{"Batman-TheVideoGame(World).gb", INSTANCECOUNT};
 //gbee::Emulator emu{"SuperMarioLand(JUE)(V1.1)[!].gb", INSTANCECOUNT};
-gbee::Emulator emu{"cpu_instrs.gb", INSTANCECOUNT};
+//gbee::Emulator emu{"cpu_instrs.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"01-special.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"02-interrupts.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"03-op sp,hl.gb", INSTANCECOUNT};
@@ -25,7 +25,7 @@ gbee::Emulator emu{"cpu_instrs.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"05-op rp.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"07-jr,jp,call,ret,rst.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"08-misc instrs.gb", INSTANCECOUNT};
-//gbee::Emulator emu{"09-op r,r.gb", INSTANCECOUNT};
+gbee::Emulator emu{"09-op r,r.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"11-op a,(hl).gb", INSTANCECOUNT};
 
 void SetKeyState(const SDL_Event& event) {

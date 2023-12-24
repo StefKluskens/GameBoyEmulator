@@ -28,6 +28,11 @@ void LR35902::Reset( const bool skipBoot ) {
 		Register.pc = 0x100; //First instruction after boot rom;
 		Register.sp = 0xFFFE;
 
+		Register.zeroF = true;
+		Register.halfCarryF = true;
+		Register.carryF = true;
+		Register.subtractF = false;
+
 		//io and hram state
 		uint8_t *memory{ Gameboy.GetRawMemory() };
 
@@ -163,8 +168,8 @@ void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget,
 	case H: OPCYCLE( funcName( Register.h __VA_ARGS__), cycles ); \
 	case L: OPCYCLE( funcName( Register.l __VA_ARGS__), cycles )
 
-void LR35902::ExecuteOpcode( uint8_t opcode ) {
-
+void LR35902::ExecuteOpcode( uint8_t opcode ) 
+{
 	assert( Gameboy.ReadMemory(Register.pc-1) == opcode ); //pc is pointing to first argument
 	uint8_t cycles{};
 
@@ -216,6 +221,8 @@ void LR35902::ExecuteOpcode( uint8_t opcode ) {
 		}
 		case 0x09:
 			ADD16(true, Register.bc());
+			//ADD(&Register.hl_2, Register.bc());
+			//ADDHL(Register.bc());
 			cycles = 8;
 			break;
 		case 0x0A:
@@ -359,9 +366,11 @@ void LR35902::ExecuteOpcode( uint8_t opcode ) {
 			cycles = 8;
 			break;
 		case 0x27:
+		{
 			DAA();
 			cycles = 4;
 			break;
+		}
 		case 0x28:
 			JR(Gameboy.ReadMemory(Register.pc++), Register.zeroF);
 			break;
@@ -446,10 +455,12 @@ void LR35902::ExecuteOpcode( uint8_t opcode ) {
 			cycles = 8;
 			break;
 		case 0x3A:
-			LD(Register.a, Register.hl());
+		{
+			Register.a = Gameboy.ReadMemory(Register.hl());
 			Register.hl(Register.hl() - 1);
 			cycles = 8;
 			break;
+		}
 		case 0x3B:
 			DEC(Register.sp);
 			cycles = 8;
@@ -987,7 +998,7 @@ void LR35902::ExecuteOpcode( uint8_t opcode ) {
 			break;
 		case 0xC1:
 		{
-			uint16_t temp{ Register.bc() };
+			uint16_t temp{};
 			POP(temp);
 			Register.bc(temp);
 			cycles = 12;
@@ -1153,9 +1164,10 @@ void LR35902::ExecuteOpcode( uint8_t opcode ) {
 		}
 		case 0xF1:
 		{
-			uint16_t temp;
+			/*uint16_t temp;
 			POP(temp);
-			Register.af(temp);
+			Register.af(temp);*/
+			POP_AF();
 			cycles = 12;
 			break;
 		}
@@ -1219,6 +1231,17 @@ void LR35902::ExecuteOpcode( uint8_t opcode ) {
 
 uint8_t LR35902::ExecuteExtendedOpcode(uint8_t opcode)
 {
+#define OPCYCLE(func, cycl) func; cycles = cycl; break
+#define BASICOPS(A, B, C, D, E, H, L, cycles, funcName, ...) \
+	case A: OPCYCLE( funcName( Register.a __VA_ARGS__), cycles ); \
+	case B: OPCYCLE( funcName( Register.b __VA_ARGS__), cycles ); \
+	case C: OPCYCLE( funcName( Register.c __VA_ARGS__), cycles ); \
+	case D: OPCYCLE( funcName( Register.d __VA_ARGS__), cycles ); \
+	case E: OPCYCLE( funcName( Register.e __VA_ARGS__), cycles ); \
+	case H: OPCYCLE( funcName( Register.h __VA_ARGS__), cycles ); \
+	case L: OPCYCLE( funcName( Register.l __VA_ARGS__), cycles )
+
+
 	uint8_t cycles{};
 	switch (opcode)
 	{

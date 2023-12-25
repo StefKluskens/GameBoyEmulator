@@ -128,7 +128,7 @@ GameHeader GameBoy::ReadHeader() {
 		case 0x03:
 			//std::cout << "Using MBC1 class\n";
 			header.mbc = mbc1;
-			m_MBC = new MBC0(Rom);
+			m_MBC = new MBC1(Rom);
 			break;
 		case 0x05:
 		case 0x06:

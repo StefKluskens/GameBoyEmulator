@@ -16,6 +16,10 @@ public:
 
 	void SetRamBanks(std::vector<uint8_t>& ramBanks) { m_RamBanks = ramBanks; }
 
+	uint8_t GetRomBank() const { return m_RomBank; }
+	uint8_t GetRamBank() const { return m_RamBank; }
+	std::vector<uint8_t> GetRamBanks() const { return m_RamBanks; }
+
 protected:
 	constexpr bool InRange(const unsigned int value, const unsigned int min, const unsigned int max) const noexcept {
 		return (value - min) <= (max - min);

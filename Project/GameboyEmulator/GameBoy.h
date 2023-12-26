@@ -42,6 +42,7 @@ public:
 
 	void WriteMemory( uint16_t address, uint8_t data );
 	void WriteMemoryWord( const uint16_t pos, const uint16_t value );
+	void PushWordOntoStack(uint16_t& sp, uint16_t value);
 
 	uint8_t ReadMemory( uint16_t pos );
 	uint16_t ReadMemoryWord( uint16_t &pos ) {

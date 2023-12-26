@@ -165,6 +165,32 @@ GameHeader GameBoy::ReadHeader() {
 
 uint8_t GameBoy::ReadMemory( const uint16_t pos ) 
 {
+	/*if (pos >= 0x4000 && pos <= 0x7FFF)
+	{
+		if (m_MBC)
+		{
+			uint16_t newAddress = pos;
+			newAddress += ((m_MBC->GetRomBank() - 1) * 0x4000);
+			return Rom[newAddress];
+		}
+		
+	}
+	else if (pos >= 0xA000 && pos <= 0xBFFF)
+	{
+		if (m_MBC)
+		{
+			uint16_t newAddress = pos - 0xA000;
+			return m_MBC->GetRamBanks().at(m_MBC->GetRamBank())[&newAddress];
+		}
+	}
+	else if (pos == 0xFF00)
+	{
+		return GetJoypadState();
+	}
+
+	return Memory[pos];*/
+
+
 	if (pos == 0xFF00)
 	{
 		return GetJoypadState();
@@ -251,17 +277,43 @@ void GameBoy::WriteMemory( uint16_t address, uint8_t data )
 	{ 
 		TACTimer = data & 0x7;
 
+		//Memory[address] = data;
+		//
+		//int timerVal = data & 0x03;
+
+		//int clockSpeed = 0;
+
+		//switch (timerVal)
+		//{
+		//	case 0: clockSpeed = 1024; break;
+		//	case 1: clockSpeed = 16; break;
+		//	case 2: clockSpeed = 64; break;
+		//	case 3: clockSpeed = 256; break; // 256
+		//	default: assert(false); break; // weird timer val
+		//}
+
+		//if (clockSpeed != )
+		//{
+
+		//}
+
 	} 
 	else if (address == 0xFF44) //Horizontal scanline reset
 	{ 
 		Memory[address] = 0;
 
-	} 
+	}
+	else if (address == 0xFF45)
+	{
+		Memory[address] = data;
+	}
 	else if (address == 0xFF46) //DMA transfer
 	{ 
 		const uint16_t src{ uint16_t( uint16_t( data ) << 8 ) };
-		for (int i{ 0 }; i < 0xA0; ++i) {
-			WriteMemory( 0xFE00 + i, ReadMemory( src + i ) );
+		for (int i{ 0 }; i < 0xA0; ++i) 
+		{
+			//WriteMemory( 0xFE00 + i, ReadMemory( src + i ) );
+			Memory[0xFE00 + i] = ReadMemory(src + i);
 		}
 
 	} 
@@ -274,6 +326,16 @@ void GameBoy::WriteMemory( uint16_t address, uint8_t data )
 void GameBoy::WriteMemoryWord( const uint16_t pos, const uint16_t value ) {
 	WriteMemory( pos, value & 0xFF );
 	WriteMemory(pos + 1, (value >> 8) & 0xFF);
+}
+
+void GameBoy::PushWordOntoStack(uint16_t& sp, uint16_t value)
+{
+	uint8_t hi = value >> 8;
+	uint8_t lo = value & 0xFF;
+	sp--;
+	WriteMemory(sp, hi);
+	sp--;
+	WriteMemory(sp, lo);
 }
 
 void GameBoy::SetKey( const Key key, const bool pressed ) {

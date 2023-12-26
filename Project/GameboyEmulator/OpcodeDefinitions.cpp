@@ -264,36 +264,88 @@ FINLINE void LR35902::DAA()
 	//Register.zeroF = (Register.a == 0);
 
 
-	uint8_t newA{ Register.a };
+	//uint8_t newA{ Register.a };
 
-	if (Register.subtractF)
+	//if (Register.subtractF)
+	//{
+	//	if (Register.carryF) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
+	//	{
+	//		newA -= 0x60; //Overflow (15-9)
+	//	}
+
+	//	if (Register.halfCarryF)
+	//	{
+	//		newA -= 0x6; //same overflow for the higher nibble
+	//	}
+	//}
+	//else //The last operation was a subtraction, we need to honor this
+	//{
+	//	if (Register.carryF || newA > 0x99)
+	//	{
+	//		newA += 0x60;
+	//		Register.carryF = true;
+	//	}
+	//	if (Register.halfCarryF || (newA & 0xF) > 0x9)
+	//	{
+	//		newA += 0x6;
+	//	}
+	//}
+
+	//Register.a = newA;
+	//Register.carryF = !newA;
+	//Register.halfCarryF = false;
+
+	if (TestBit(Register.a, 6))
 	{
-		if (Register.carryF) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
+		if ((Register.f & 0x0F) > 0x09 || Register.a & 0x20)
 		{
-			newA -= 0x60; //Overflow (15-9)
+			Register.f -= 0x06;
+
+			if ((Register.f & 0xF0) == 0xF0)
+			{
+				Register.a |= 0x10;
+			}
+			else
+			{
+				Register.a &= ~0x10;
+			}
 		}
 
-		if (Register.halfCarryF)
+		if ((Register.f & 0xF0) > 0x90 || Register.a & 0x10)
 		{
-			newA -= 0x6; //same overflow for the higher nibble
+			Register.f -= 0x60;
 		}
 	}
-	else //The last operation was a subtraction, we need to honor this
+	else
 	{
-		if (Register.carryF || newA > 0x99)
+		if ((Register.f & 0x0F) > 0x09 || Register.a & 0x20)
 		{
-			newA += 0x60;
-			Register.carryF = true;
+			Register.f += 0x06;
+
+			if ((Register.f & 0xF0) == 0x00)
+			{
+				Register.a |= 0x10;
+			}
+			else
+			{
+				Register.a &= ~0x10;
+			}
 		}
-		if (Register.halfCarryF || (newA & 0xF) > 0x9)
+
+		if ((Register.f & 0xF0) > 0x90 || Register.a & 0x10)
 		{
-			newA += 0x6;
+			Register.f += 0x60;
 		}
 	}
 
-	Register.a = newA;
-	Register.carryF = !newA;
-	Register.halfCarryF = false;
+	if (Register.f == 0)
+	{
+		Register.a |= 0x80;
+	}
+	else
+	{
+		Register.a &= ~0x80;
+	}
 }
 FINLINE void LR35902::POP_AF()
 {
@@ -323,6 +375,12 @@ FINLINE uint8_t LR35902::BitSet(uint8_t reg, size_t pos)
 {
 	uint8_t lMsk = 1 << pos;
 	reg |= lMsk;
+	return reg;
+}
+FINLINE uint8_t LR35902::BitReset(uint8_t reg, size_t pos)
+{
+	uint8_t lMsk = 1 << pos;
+	reg &= ~lMsk;
 	return reg;
 }
 #pragma endregion
@@ -595,8 +653,8 @@ FINLINE void LR35902::RET( bool doReturn, bool handleCycles ) {
 }
 
 FINLINE void LR35902::RETI() {
-	Register.pc = Gameboy.ReadMemoryWord( Register.sp );
 	InteruptsEnabled = true;
+	Register.pc = Gameboy.ReadMemoryWord( Register.sp );
 }
 
 FINLINE void LR35902::RST( const uint8_t address ) { //same as call.. (apart from address size)

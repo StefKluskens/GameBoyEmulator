@@ -113,6 +113,9 @@ private:
 
 	bool InteruptsEnabled{ false }; ///< InteruptsMasterEnable
 	bool InteruptChangePending{ false }; ///< When an interupt change is requested, it gets pushed after the next opcode\note lsb==Disable, msb==Enable
+	bool m_Halted{ false };
+	bool m_PendingInteruptEnabled{ false };
+	bool m_PendingInteruptDisabled{ false };
 
 	void ExecuteOpcode( uint8_t opcode );
 	uint8_t ExecuteExtendedOpcode( uint8_t opcode );
@@ -187,6 +190,7 @@ private:
 	void ClearFlags();
 	bool TestBit(uint8_t reg, size_t pos);
 	uint8_t BitSet(uint8_t reg, size_t pos);
+	uint8_t BitReset(uint8_t reg, size_t pos);
 #pragma endregion
 	// ReSharper restore CppInconsistentNaming
 };

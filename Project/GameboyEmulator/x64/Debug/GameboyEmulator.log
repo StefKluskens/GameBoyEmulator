@@ -1,5 +1,3 @@
 ﻿  LR35902.cpp
-C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(1202,31): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
-  OpcodeDefinitions.cpp
-  Generating Code...
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(1209,31): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
   GameboyEmulator.vcxproj -> C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\x64\Debug\GameboyEmulator.lib

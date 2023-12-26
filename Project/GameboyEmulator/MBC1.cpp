@@ -20,7 +20,7 @@ MBC1::MBC1(const std::vector<uint8_t>& rom)
 
 uint8_t MBC1::ReadByte(const uint16_t address, const uint8_t* memory) const
 {
-	/*if (address <= 0x3FFF)
+	if (address <= 0x3FFF)
 	{
 		return m_Rom[address];
 	}
@@ -40,34 +40,34 @@ uint8_t MBC1::ReadByte(const uint16_t address, const uint8_t* memory) const
 		}
 	}
 
-	return memory[address];*/
+	return memory[address];
 
-	if (address <= 0x3FFF)
-	{
-		int bank = m_BankingMode * (m_RamBank << 5) % m_NumRomBanks;
-		return m_Rom[bank * 0x4000 + address];
-	}
-	else if (address >= 0x4000 && address <= 0x7FFF)
-	{
-		//std::cout << "Rom bank: " << unsigned(m_RomBank) << "\n\n";
-		int bank = ((m_RamBank << 5) | m_RomBank) % m_NumRomBanks;
-		return m_Rom[bank * 0x4000 + address - 0x4000];
-	}
-	else if (address >= 0xA000 && address <= 0xBFFF)
-	{
-		if (m_RamBankEnabled)
-		{
-			int bank = m_BankingMode * m_RamBank % m_NumRamBanks;
-			return m_RamBanks[bank * 0x2000 + address - 0xA000];
-		}
-	}
+	//if (address <= 0x3FFF)
+	//{
+	//	int bank = m_BankingMode * (m_RamBank << 5) % m_NumRomBanks;
+	//	return m_Rom[bank * 0x4000 + address];
+	//}
+	//else if (address >= 0x4000 && address <= 0x7FFF)
+	//{
+	//	//std::cout << "Rom bank: " << unsigned(m_RomBank) << "\n\n";
+	//	int bank = ((m_RamBank << 5) | m_RomBank) % m_NumRomBanks;
+	//	return m_Rom[bank * 0x4000 + address - 0x4000];
+	//}
+	//else if (address >= 0xA000 && address <= 0xBFFF)
+	//{
+	//	if (m_RamBankEnabled)
+	//	{
+	//		int bank = m_BankingMode * m_RamBank % m_NumRamBanks;
+	//		return m_RamBanks[bank * 0x2000 + address - 0xA000];
+	//	}
+	//}
 
-	return 0xFF;
+	//return 0xFF;
 }
 
 void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)
 {
-	if (address <= 0x1FFF)
+	/*if (address <= 0x1FFF)
 	{
 		m_RamBankEnabled = (data & 0x0F) == 0xA;
 	}
@@ -80,58 +80,93 @@ void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)
 		}
 
 		m_RomBank = data;
-
-		/*m_RomBank = (m_RomBank & 0xF0) | (data & 0x1F);
-		if (m_RomBank == 0x00 || m_RomBank == 0x20 || m_RomBank == 0x40 || m_RomBank == 0x60)
-		{
-			m_RomBank++;
-		}
-
-		m_RomOffset = m_RomBank * 0x4000;*/
 	}
 	else if (address >= 0x4000 && address <= 0x5FFF)
 	{
-		/*if (m_BankingMode)
-		{
-			m_RamBank = data & 0x03;
-		}
-		else
-		{
-			m_RomBank = ((data & 0x03) << 5) | (m_RomBank & 0x1F);
-		}*/
-
 		m_RamBank = data & 0x03;
-
-		/*if (!m_BankingMode)
-		{
-			m_RomBank = ((data & 0x03) << 5) | (m_RomBank & 0x1F);
-			m_RomOffset = m_RomBank * 0x4000;
-		}
-		else
-		{
-			m_RamBank = data & 0x03;
-			m_RamOffset = m_RamBank * 0x4000;
-		}*/
 	}
 	else if (address >= 0xA000 && address <= 0xBFFF)
 	{
 		if (m_RamBankEnabled && !m_RamBanks.empty())
 		{
-			/*uint32_t ramAddress = m_RamBank * 0x2000;
-			m_RamBanks[ramAddress + (address - 0xA000)] = data;*/
 			m_RamBanks[(address - 0xA000) + m_RamOffset] = data;
 
 			int bank = (m_RamBank * m_BankingMode) % m_NumRamBanks;
 			m_RamBanks[bank * 0x2000 + address - 0xA000] = data;
 		}
+	}*/
+
+	if (address <= 0x1FFF)
+	{
+		if ((data & 0xF) == 0xA)
+		{
+			m_RamBankEnabled = true;
+		}
+		else
+		{
+			m_RamBankEnabled = false;
+		}
 	}
-	//else if (address >= 0x6000 && address <= 0x7FFF)
-	//{
-	//	//m_BankingMode = (data & 0x01) != 0;
-	//	m_BankingMode = (data & 0x01);
-	//}
-	//else
-	//{
-	//	memory[address] = data;
-	//}
+	else if ((address >= 0x2000) && (address <= 0x3FFF))
+	{
+		if (data == 0x00)
+		{
+			data++;
+		}
+
+		data &= 31;
+
+		// Turn off the lower 5-bits.
+		m_RomBank &= 224;
+
+		// Combine the written data with the register.
+		m_RomBank |= data;
+	}
+	else if ((address >= 0x4000) && (address <= 0x5FFF))
+	{
+		if (m_UsingModel)
+		{
+			// in this mode we can only use Ram Bank 0
+			m_RamBank = 0;
+
+			data &= 3;
+			data <<= 5;
+
+			if ((m_RomBank & 31) == 0)
+			{
+				data++;
+			}
+
+			// Turn off bits 5 and 6, and 7 if it somehow got turned on.
+			m_RomBank &= 31;
+
+			// Combine the written data with the register.
+			m_RomBank |= data;
+		}
+		else
+		{
+			m_RamBank = data & 0x3;
+		}
+	}
+	else if ((address >= 0x6000) && (address <= 0x7FFF))
+	{
+		data &= 1;
+		if (data == 1)
+		{
+			m_RamBank = 0;
+			m_UsingModel = false;
+		}
+		else
+		{
+			m_UsingModel = true;
+		}
+	}
+	else if ((address >= 0xA000) && (address <= 0xBFFF))
+	{
+		if (m_RamBankEnabled)
+		{
+			uint16_t newAddress = address - 0xA000;
+			m_RamBanks.at(m_RamBank)[&newAddress] = data;
+		}
+	}
 }

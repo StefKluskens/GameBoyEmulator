@@ -15,15 +15,15 @@ LR35902::LR35902( GameBoy &gameboy ): Gameboy{ gameboy } {
 	}*/
 }
 
-void LR35902::Reset( const bool skipBoot ) {
+void LR35902::Reset(const bool skipBoot) {
 	//http://bgb.bircd.org/pandocs.htm#powerupsequence
 
 	if (skipBoot) {
 		//The state after executing the Boot rom
-		Register.af( 0x01b0 );
-		Register.bc( 0x0013 );
-		Register.de( 0x00d8 );
-		Register.hl( 0x014D );
+		Register.af(0x01b0);
+		Register.bc(0x0013);
+		Register.de(0x00d8);
+		Register.hl(0x014D);
 
 		Register.pc = 0x100; //First instruction after boot rom;
 		Register.sp = 0xFFFE;
@@ -33,8 +33,12 @@ void LR35902::Reset( const bool skipBoot ) {
 		Register.carryF = true;
 		Register.subtractF = false;
 
+		m_Halted = false;
+		m_PendingInteruptEnabled = false;
+		m_PendingInteruptDisabled = false;
+
 		//io and hram state
-		uint8_t *memory{ Gameboy.GetRawMemory() };
+		uint8_t* memory{ Gameboy.GetRawMemory() };
 		memory[0xFF05] = 0x00;
 		memory[0xFF06] = 0x00;
 		memory[0xFF07] = 0x00;
@@ -69,7 +73,6 @@ void LR35902::Reset( const bool skipBoot ) {
 	}
 }
 
-
 void LR35902::ExecuteNextOpcode() {
 	const uint8_t opcode{ Gameboy.ReadMemory( Register.pc++ ) };
 
@@ -103,7 +106,8 @@ void LR35902::ExecuteNextOpcode() {
 	}
 }
 
-void LR35902::HandleInterupts() {
+void LR35902::HandleInterupts() 
+{
 	const uint8_t ints{ uint8_t( Gameboy.GetIF() & Gameboy.GetIE() ) };
 
 	if (InteruptsEnabled && ints) {
@@ -123,6 +127,7 @@ void LR35902::HandleInterupts() {
 						break;//Joypad
 				}
 				InteruptsEnabled = false;
+				
 				Gameboy.GetIF() &= ~(1 << bit);
 				break;
 			}
@@ -253,7 +258,8 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			cycles = 4;
 			break;
 		case 0x10:
-			STOP();
+			//STOP();
+			Register.pc++;
 			cycles = 4;
 			break;
 		case 0x11:
@@ -698,6 +704,7 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			break;
 		case 0x76:
 			//HALT();
+			m_Halted = true;
 			cycles = 4;
 			break;
 		case 0x77:

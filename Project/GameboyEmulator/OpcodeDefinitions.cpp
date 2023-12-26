@@ -539,7 +539,10 @@ FINLINE void LR35902::SCF() {
 	Register.carryF = 1;
 }
 
-FINLINE void LR35902::HALT() { --Register.pc; } //Until an interrupt
+FINLINE void LR35902::HALT() //Until an interrupt
+{ 
+	--Register.pc;
+} 
 FINLINE void LR35902::STOP() { --Register.pc; } //Until button press
 FINLINE void LR35902::DI() { *(uint8_t*)&InteruptChangePending = 1; }
 FINLINE void LR35902::EI() { *((uint8_t*)&InteruptChangePending) = 8; }

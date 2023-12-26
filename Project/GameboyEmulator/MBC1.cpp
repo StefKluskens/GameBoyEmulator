@@ -49,6 +49,7 @@ uint8_t MBC1::ReadByte(const uint16_t address, const uint8_t* memory) const
 	}
 	else if (address >= 0x4000 && address <= 0x7FFF)
 	{
+		//std::cout << "Rom bank: " << unsigned(m_RomBank) << "\n\n";
 		int bank = ((m_RamBank << 5) | m_RomBank) % m_NumRomBanks;
 		return m_Rom[bank * 0x4000 + address - 0x4000];
 	}

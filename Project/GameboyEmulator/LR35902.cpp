@@ -35,7 +35,6 @@ void LR35902::Reset( const bool skipBoot ) {
 
 		//io and hram state
 		uint8_t *memory{ Gameboy.GetRawMemory() };
-
 		memory[0xFF05] = 0x00;
 		memory[0xFF06] = 0x00;
 		memory[0xFF07] = 0x00;
@@ -698,7 +697,7 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			cycles = 8;
 			break;
 		case 0x76:
-			HALT();
+			//HALT();
 			cycles = 4;
 			break;
 		case 0x77:
@@ -2429,7 +2428,8 @@ void LR35902::ConfigureLCDStatus() {
 		Gameboy.GetLCDS() &= ~(unsigned( 1 ) << 2);
 }
 
-void LR35902::DrawLine() const {
+void LR35902::DrawLine() const 
+{
 	DrawBackground();
 	DrawWindow(); //window == ui
 	DrawSprites();

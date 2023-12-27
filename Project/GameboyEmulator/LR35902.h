@@ -4,7 +4,7 @@
 #endif
 #include <thread>
 #include <condition_variable>
-#include <atomic>
+#include <array>
 class GameBoy;
 
 
@@ -66,7 +66,6 @@ struct Registers final {
 	}
 };
 
-
 class LR35902 final {
 public:
 	LR35902( GameBoy &gameboy );
@@ -86,6 +85,7 @@ public:
 	void HandleInterupts();
 	void HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept;
 
+	Registers& GetRegisters() { return Register; }
 private:
 	struct DrawData {
 		const uint8_t *const colors; //[4]
@@ -114,19 +114,20 @@ private:
 	bool InteruptsEnabled{ false }; ///< InteruptsMasterEnable
 	bool InteruptChangePending{ false }; ///< When an interupt change is requested, it gets pushed after the next opcode\note lsb==Disable, msb==Enable
 	bool m_Halted{ false };
-	bool m_PendingInteruptEnabled{ false };
-	bool m_PendingInteruptDisabled{ false };
+	bool m_ime{ false };
+
+	int m_ScreenWidth{ 144 };
+	int m_ScreenHeight{ 160 };
 
 	void ExecuteOpcode( uint8_t opcode );
 	uint8_t ExecuteExtendedOpcode( uint8_t opcode );
 	void ConfigureLCDStatus();
-	void DrawLine() const;
-	void DrawBackground() const;
-	void DrawWindow() const;
-	void DrawSprites() const;
+	void DrawLine();
+	void DrawBackground();
+	void DrawWindow();
+	void DrawSprites();
 	uint8_t ReadPalette( const uint16_t pixelData, const uint8_t xPixel, const uint8_t yPixel ) const;
 	void ConfigureColorArray( uint8_t *const colorArray, uint8_t palette ) const;
-
 	//void ThreadWork( const uint8_t id, DrawData **const drawData );
 			
 	// ReSharper disable CppInconsistentNaming
@@ -136,6 +137,9 @@ private:
 	void LD(uint8_t& dest, const uint8_t data);
 	void LD(uint16_t* const dest, const uint16_t data);
 	void LD(const uint16_t destAddrs, const uint8_t data);
+
+	void LD(uint8_t& dest);
+	void LD(uint16_t& dest);
 
 	//void ADD(uint8_t toAdd) { return ADC(toAdd, false); }
 	void ADD(uint8_t toAdd);
@@ -167,7 +171,7 @@ private:
 	void RL( uint8_t &toRotate);
 	void RLC( uint8_t &toRotate );
 	void RR( uint8_t &toRotate );
-	void RRCarry( uint8_t &toRotate );
+	void RRC( uint8_t &toRotate );
 	void RST( const uint8_t address );
 	
 	void EI();

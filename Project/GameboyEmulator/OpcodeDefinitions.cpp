@@ -52,6 +52,18 @@
 //	Register.halfCarryF = ((bits & 0x10) != 0);*/
 //}
 
+FINLINE void LR35902::ADD(uint8_t toAdd)
+{
+	auto result = Register.a + toAdd;
+
+	Register.halfCarryF = ((Register.a & 0xF) + (toAdd & 0xF)) > 0xF;
+	Register.carryF = (result > 0xFF);
+	Register.zeroF = ((result & 0xFF) == 0);
+	Register.subtractF = false;
+
+	Register.a = (result & 0xFF);
+}
+
 //Add Carry
 FINLINE void LR35902::ADC( uint8_t toAdd, bool addCarry ) 
 {
@@ -174,10 +186,34 @@ FINLINE void LR35902::OR( const uint8_t toOr ) {
 }
 
 FINLINE void LR35902::INC( uint8_t &toInc ) {
-	Register.subtractF = 0;
-	//Register.carryF; //Does not affect the carry flag! The INC/DEC opcode is often used to control loops; Loops are often used for multiple precision arithmetic so, to prevent having to push the carry state after every loop they just made the instruction ignore it! :D
-	Register.halfCarryF = uint8_t( (toInc & 0xF) == 0xF );
-	Register.zeroF = !(++toInc);
+	//Register.subtractF = 0;
+	////Register.carryF; //Does not affect the carry flag! The INC/DEC opcode is often used to control loops; Loops are often used for multiple precision arithmetic so, to prevent having to push the carry state after every loop they just made the instruction ignore it! :D
+	//Register.halfCarryF = uint8_t( (toInc & 0xF) == 0xF );
+	//Register.zeroF = !(++toInc);
+
+	uint8_t before = toInc;
+
+	toInc++;
+
+	if (toInc == 0)
+	{
+		Register.f = BitSet(Register.f, 7);
+	}
+	else
+	{
+		Register.f = BitReset(Register.f, 7);
+	}
+
+	Register.f = BitReset(Register.f, 6);
+
+	if ((before & 0xF) == 0xF)
+	{
+		Register.f = BitSet(Register.f, 5);
+	}
+	else
+	{
+		Register.f = BitReset(Register.f, 5);
+	}
 }
 
 FINLINE void LR35902::INC( uint16_t &toInc ) {
@@ -194,11 +230,34 @@ FINLINE void LR35902::AND( uint8_t toAnd ) {
 }
 
 FINLINE void LR35902::DEC( uint8_t &toDec ) {
-	Register.subtractF = 1;
-	//Register.carryF; //Does not affect the carry flag! The INC/DEC opcode is often used to control loops; Loops are often used for multiple precision arithmetic so, to prevent having to push the carry state after every loop they just made the instruction ignore it! :D
-	Register.halfCarryF = !(toDec & 0xF);
-	Register.zeroF = !(--toDec);
+	//Register.subtractF = 1;
+	////Register.carryF; //Does not affect the carry flag! The INC/DEC opcode is often used to control loops; Loops are often used for multiple precision arithmetic so, to prevent having to push the carry state after every loop they just made the instruction ignore it! :D
+	//Register.halfCarryF = !(toDec & 0xF);
+	//Register.zeroF = !(--toDec);
 
+	uint8_t before = toDec;
+
+	toDec--;
+
+	if (toDec == 0)
+	{
+		Register.f = BitSet(Register.f, 7);
+	}
+	else
+	{
+		Register.f = BitReset(Register.f, 7);
+	}
+
+	Register.f = BitSet(Register.f, 6);
+
+	if ((before & 0xF) == 0xF)
+	{
+		Register.f = BitSet(Register.f, 5);
+	}
+	else
+	{
+		Register.f = BitReset(Register.f, 5);
+	}
 }
 
 FINLINE void LR35902::DEC( uint16_t &toDec ) { //No flags for 16 bit variant
@@ -396,16 +455,17 @@ FINLINE void LR35902::LD( uint8_t &dest, const uint8_t data ) {
 FINLINE void LR35902::LD( uint16_t *const dest, const uint16_t data ) { *dest = data; }
 FINLINE void LR35902::LD( const uint16_t destAddrs, const uint8_t data ) { Gameboy.WriteMemory( destAddrs, data ); }
 
-FINLINE void LR35902::ADD(uint8_t toAdd)
+FINLINE void LR35902::LD(uint8_t& dest)
 {
-	auto result = Register.a + toAdd;
+	uint8_t n = Gameboy.ReadMemory(Register.pc);
+	Register.pc++;
+	dest = n;
+}
 
-	Register.halfCarryF = ((Register.a & 0xF) + (toAdd & 0xF)) > 0xF;
-	Register.carryF = (result > 0xFF);
-	Register.zeroF = ((result & 0xFF) == 0);
-	Register.subtractF = false;
-
-	Register.a = (result & 0xFF);
+FINLINE void LR35902::LD(uint16_t& dest)
+{
+	uint16_t n = Gameboy.ReadMemoryWord(Register.pc);
+	dest = n;
 }
 
 //FINLINE void LR35902::LD(uint16_t& high, uint16_t& low)
@@ -440,7 +500,7 @@ FINLINE void LR35902::RL(uint8_t& toRotate)
 	toRotate |= uint8_t(originalCarry);
 	Register.carryF = msb;*/
 
-	bool isCarrySet = TestBit(Register.f, 4);
+	bool isCarrySet = Register.carryF;
 	bool isMSBSet = TestBit(toRotate, 7);
 
 	Register.f = 0;
@@ -449,7 +509,8 @@ FINLINE void LR35902::RL(uint8_t& toRotate)
 
 	if (isMSBSet)
 	{
-		Register.f = BitSet(Register.f, 4);
+		//Register.f = BitSet(Register.f, 4);
+		Register.carryF = true;
 	}
 
 	if (isCarrySet)
@@ -459,7 +520,8 @@ FINLINE void LR35902::RL(uint8_t& toRotate)
 
 	if (toRotate == 0)
 	{
-		Register.f = BitSet(Register.f, 7);
+		//Register.f = BitSet(Register.f, 7);
+		Register.zeroF = true;
 	}
 }
 
@@ -486,16 +548,27 @@ FINLINE void LR35902::RR( uint8_t &toRotate ) {
 }
 
 //RotateRightCarry
-FINLINE void LR35902::RRCarry(uint8_t& toRotate)
+FINLINE void LR35902::RRC(uint8_t& toRotate)
 {
-	const bool lsb = bool(toRotate & 0x1);
+	/*const bool lsb = bool(toRotate & 0x1);
 
 	toRotate >>= 1;
 	toRotate |= (lsb << 7);
 
 	Register.f = 0;
 	Register.carryF = lsb;
-	Register.zeroF = !toRotate;
+	Register.zeroF = !toRotate;*/
+
+	uint8_t carry = toRotate & 0x01 ? 1 : 0;
+	uint8_t result = (toRotate >> 1) | (carry << 7);
+
+	Register.f = 0;
+	Register.zeroF = (result == 0);
+	Register.subtractF = false;
+	Register.halfCarryF = false;
+	Register.carryF = carry;
+
+	toRotate = result;
 }
 
 //ShiftLeftArithmetic (even though it's a logical shift..)
@@ -531,27 +604,16 @@ FINLINE void LR35902::SRA(uint8_t& toShift)
 	Register.carryF = toShift & 0x1;
 	Register.zeroF = !toShift;*/
 
-	bool isLSBSet = TestBit(toShift, 0);
-	bool isMSBSet = TestBit(toShift, 7);
+	uint8_t carry = toShift & 0x01 ? 1 : 0;
+	uint8_t result = (toShift >> 1) | (carry << 0x80);
 
 	Register.f = 0;
+	Register.zeroF = (result == 0);
+	Register.subtractF = false;
+	Register.halfCarryF = false;
+	Register.carryF = carry;
 
-	toShift >>= 1;
-
-	if (isMSBSet)
-	{
-		toShift = BitSet(toShift, 7);
-	}
-
-	if (isLSBSet)
-	{
-		Register.f = BitSet(Register.f, 4);
-	}
-
-	if (toShift == 0)
-	{
-		Register.f = BitSet(Register.f, 7);
-	}
+	toShift = result;
 }
 
 //ShiftRightLogical
@@ -599,11 +661,27 @@ FINLINE void LR35902::SCF() {
 
 FINLINE void LR35902::HALT() //Until an interrupt
 { 
+	//--Register.pc;
+	m_Halted = true;
+} 
+
+FINLINE void LR35902::STOP() //Until button press
+{ 
 	--Register.pc;
 } 
-FINLINE void LR35902::STOP() { --Register.pc; } //Until button press
-FINLINE void LR35902::DI() { *(uint8_t*)&InteruptChangePending = 1; }
-FINLINE void LR35902::EI() { *((uint8_t*)&InteruptChangePending) = 8; }
+
+FINLINE void LR35902::DI() 
+{ 
+	*(uint8_t*)&InteruptChangePending = 1;
+	//m_ime = false;
+}
+
+FINLINE void LR35902::EI() 
+{ 
+	*((uint8_t*)&InteruptChangePending) = 8; 
+	//m_ime = true;
+}
+
 FINLINE void LR35902::NOP() {}
 
 //ComPlemenT
@@ -652,12 +730,16 @@ FINLINE void LR35902::RET( bool doReturn, bool handleCycles ) {
 		Gameboy.AddCycles( handleCycles ? 8 : 0 );
 }
 
-FINLINE void LR35902::RETI() {
-	InteruptsEnabled = true;
-	Register.pc = Gameboy.ReadMemoryWord( Register.sp );
+FINLINE void LR35902::RETI() 
+{
+	//InteruptsEnabled = true;
+	//Register.pc = Gameboy.ReadMemoryWord( Register.sp );
+	RET();
+	EI();
 }
 
-FINLINE void LR35902::RST( const uint8_t address ) { //same as call.. (apart from address size)
+FINLINE void LR35902::RST( const uint8_t address ) 
+{ //same as call.. (apart from address size)
 	Gameboy.WriteMemoryWord( Register.sp -= 2, Register.pc );
 	Register.pc = address;
 }

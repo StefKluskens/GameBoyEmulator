@@ -1,13 +1,11 @@
-﻿  pch.cpp
-  LR35902.cpp
-C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(242,29): warning C4805: '|': unsafe mix of type 'int' and type 'const bool' in operation
-C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(449,30): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
-C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(1191,31): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
-  Emulator.cpp
+﻿  Emulator.cpp
   GameBoy.cpp
+  LR35902.cpp
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(608,50): warning C4293: '<<': shift count negative or too big, undefined behavior
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(1298,31): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
   MBC0.cpp
   MBC1.cpp
   MemoryBankController.cpp
   OpcodeDefinitions.cpp
-C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(242,29): warning C4805: '|': unsafe mix of type 'int' and type 'const bool' in operation
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(608,50): warning C4293: '<<': shift count negative or too big, undefined behavior
   GameboyEmulator.vcxproj -> C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\x64\Release\GameboyEmulator.lib

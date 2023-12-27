@@ -90,9 +90,10 @@ public:
 	const std::bitset<(160 * 144) * 2>& GetFramebuffer() const noexcept { return FrameBuffer; }
 	uint8_t GetPixelColor( const uint16_t pixel ) const { return ((FrameBuffer[pixel * 2] << 1) | uint8_t( FrameBuffer[pixel * 2 + 1] )); }
 
+
 	void AddCycles( const unsigned cycles ) { CurrentCycles += cycles; }
 	unsigned int GetCycles() const noexcept { return CurrentCycles; }
-	void RequestInterrupt( Interupts bit ) const noexcept { IF |= (1 << bit); }
+	void RequestInterrupt(Interupts bit);
 	void SetKey( const Key key, const bool pressed );
 
 	void SetPaused( const bool isPaused ) noexcept { IsPaused = isPaused; }

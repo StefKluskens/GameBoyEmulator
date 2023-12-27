@@ -34,8 +34,7 @@ void LR35902::Reset(const bool skipBoot) {
 		Register.subtractF = false;
 
 		m_Halted = false;
-		m_PendingInteruptEnabled = false;
-		m_PendingInteruptDisabled = false;
+		m_ime = false;
 
 		//io and hram state
 		uint8_t* memory{ Gameboy.GetRawMemory() };
@@ -73,8 +72,9 @@ void LR35902::Reset(const bool skipBoot) {
 	}
 }
 
-void LR35902::ExecuteNextOpcode() {
-	const uint8_t opcode{ Gameboy.ReadMemory( Register.pc++ ) };
+void LR35902::ExecuteNextOpcode() 
+{
+	
 
 #ifdef VERBOSE
 	static bool ok{};
@@ -93,13 +93,18 @@ void LR35902::ExecuteNextOpcode() {
 
 	}
 #endif
-	ExecuteOpcode( opcode );
+	const uint8_t opcode{ Gameboy.ReadMemory(Register.pc++) };
+	ExecuteOpcode(opcode);
 
-	if (InteruptChangePending) {
-		if ((*(uint8_t*)&InteruptChangePending & 8) && Gameboy.ReadMemory( Register.pc - 1 ) != 0xFB) {
+	if (InteruptChangePending) 
+	{
+		if ((*(uint8_t*)&InteruptChangePending & 8) && Gameboy.ReadMemory( Register.pc - 1 ) != 0xFB) 
+		{
 			InteruptsEnabled = true;
 			InteruptChangePending = false;
-		} else if ((*(uint8_t*)&InteruptChangePending & 1) && Gameboy.ReadMemory( Register.pc - 1 ) != 0xF3) {
+		} 
+		else if ((*(uint8_t*)&InteruptChangePending & 1) && Gameboy.ReadMemory( Register.pc - 1 ) != 0xF3) 
+		{
 			InteruptsEnabled = false;
 			InteruptChangePending = false;
 		}
@@ -110,24 +115,33 @@ void LR35902::HandleInterupts()
 {
 	const uint8_t ints{ uint8_t( Gameboy.GetIF() & Gameboy.GetIE() ) };
 
-	if (InteruptsEnabled && ints) {
-		for (int bit{ 0 }; bit < 5; ++bit) {
-			if ((ints >> bit) & 0x1) {
+	if (InteruptsEnabled && ints) 
+	{
+		for (int bit{ 0 }; bit < 5; ++bit) 
+		{
+			if ((ints >> bit) & 0x1) 
+			{
 				Gameboy.WriteMemoryWord( Register.sp -= 2, Register.pc );
 				switch (bit) {
-					case 0: Register.pc = 0x40;
+					case 0: 
+						Register.pc = 0x40;
 						break;//V-Blank
-					case 1: Register.pc = 0x48;
+					case 1: 
+						Register.pc = 0x48;
 						break;//LCD State
-					case 2: Register.pc = 0x50;
+					case 2: 
+						Register.pc = 0x50;
+						//m_Halted = false;
 						break;//Timer
-					case 3: Register.pc = 0x58;
+					case 3: 
+						Register.pc = 0x58;
 						break;//Serial
-					case 4: Register.pc = 0x60;
+					case 4: 
+						Register.pc = 0x60;
 						break;//Joypad
 				}
+
 				InteruptsEnabled = false;
-				
 				Gameboy.GetIF() &= ~(1 << bit);
 				break;
 			}
@@ -135,22 +149,38 @@ void LR35902::HandleInterupts()
 	}
 }
 
-void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept {
+void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept 
+{
 	const unsigned cyclesOneDraw{ 456 };
 	ConfigureLCDStatus(); //This is why we can't "speed this up" in the traditional sense, games are sensitive to this
 
-	if (Gameboy.GetLY() > 153) Gameboy.GetLY() = 0;
-	if ((Gameboy.GetLCDC() & 0x80)) {
-		if ((LCDCycles += cycles) >= cyclesOneDraw) { //LCD enabled and we're at our cycle mark
+	if (Gameboy.GetLY() > 153) 
+	{
+		Gameboy.GetLY() = 0;
+	}
+
+	if ((Gameboy.GetLCDC() & 0x80)) 
+	{
+		if ((LCDCycles += cycles) >= cyclesOneDraw) 
+		{ //LCD enabled and we're at our cycle mark
 			LCDCycles = 0;
 			uint8_t dirtyLY;
 
-			if ((dirtyLY = ++Gameboy.GetLY()) == 144) {
+			if ((dirtyLY = ++Gameboy.GetLY()) == 144) 
+			{
 				Gameboy.RequestInterrupt( vBlank );
+
+				/*uint8_t newIF = Gameboy.GetIF() | 0x01;
+				Gameboy.WriteMemory(0xFF0F, newIF);*/
 			}
+
 			if (Gameboy.GetLY() > 153)
+			{
 				Gameboy.GetLY() = 0;
-			if (dirtyLY < 144 && draw) {
+			}
+
+			if (dirtyLY < 144 && draw) 
+			{
 				DrawLine();
 			}
 		}
@@ -224,11 +254,11 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			break;
 		}
 		case 0x09:
+		{
 			ADD16(true, Register.bc());
-			//ADD(&Register.hl_2, Register.bc());
-			//ADDHL(Register.bc());
 			cycles = 8;
 			break;
+		}
 		case 0x0A:
 			LD(Register.a, Gameboy.ReadMemory(Register.bc()));
 			cycles = 8;
@@ -303,9 +333,11 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			JR(Gameboy.ReadMemory(Register.pc++), true);
 			break;
 		case 0x19:
+		{
 			ADD16(true, Register.de());
 			cycles = 8;
 			break;
+		}
 		case 0x1A:
 			LD(Register.a, Gameboy.ReadMemory(Register.de()));
 			cycles = 8;
@@ -380,9 +412,11 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			JR(Gameboy.ReadMemory(Register.pc++), Register.zeroF);
 			break;
 		case 0x29:
+		{
 			ADD16(true, Register.hl());
 			cycles = 8;
 			break;
+		}
 		case 0x2A:
 			LD(Register.a, Gameboy.ReadMemory(Register.hl()));
 			Register.hl(Register.hl() + 1);
@@ -456,9 +490,11 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			JR(Gameboy.ReadMemory(Register.pc++), Register.carryF);
 			break;
 		case 0x39:
+		{
 			ADD16(true, Register.sp);
 			cycles = 8;
 			break;
+		}
 		case 0x3A:
 		{
 			Register.a = Gameboy.ReadMemory(Register.hl());
@@ -703,8 +739,7 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			cycles = 8;
 			break;
 		case 0x76:
-			//HALT();
-			m_Halted = true;
+			HALT();
 			cycles = 4;
 			break;
 		case 0x77:
@@ -1288,39 +1323,39 @@ uint8_t LR35902::ExecuteExtendedOpcode(uint8_t opcode)
 		cycles = 8;
 		break;
 	case 0x08:
-		RRCarry(Register.b);
+		RRC(Register.b);
 		cycles = 8;
 		break;
 	case 0x09:
-		RRCarry(Register.c);
+		RRC(Register.c);
 		cycles = 8;
 		break;
 	case 0x0A:
-		RRCarry(Register.d);
+		RRC(Register.d);
 		cycles = 8;
 		break;
 	case 0x0B:
-		RRCarry(Register.e);
+		RRC(Register.e);
 		cycles = 8;
 		break;
 	case 0x0C:
-		RRCarry(Register.h);
+		RRC(Register.h);
 		cycles = 8;
 		break;
 	case 0x0D:
-		RRCarry(Register.l);
+		RRC(Register.l);
 		cycles = 8;
 		break;
 	case 0x0E:
 	{
 		uint8_t hlDeRef{ Gameboy.ReadMemory(Register.hl()) };
-		RRCarry(hlDeRef);
+		RRC(hlDeRef);
 		Gameboy.WriteMemory(Register.hl(), hlDeRef);
 		cycles = 16;
 		break;
 	}
 	case 0x0F:
-		RRCarry(Register.a);
+		RRC(Register.a);
 		cycles = 8;
 		break;
 	case 0x10:
@@ -2395,56 +2430,73 @@ uint8_t LR35902::ExecuteExtendedOpcode(uint8_t opcode)
 	return cycles;
 }
 
-void LR35902::ConfigureLCDStatus() {
-
-	if (!(Gameboy.GetLCDC() & 0x80)) {
+void LR35902::ConfigureLCDStatus() 
+{
+	if (!(Gameboy.GetLCDC() & 0x80)) 
+	{
 		//LCD Disabled
 		Gameboy.GetLY() = LCDCycles = 0;
 		Gameboy.GetLCDS() = ((Gameboy.GetLCDS() & 0xFC) | 1); //Set mode to vblank
 	}
 
 	uint8_t oldMode{ uint8_t( Gameboy.GetLCDS() & 3 ) };
-	if (Gameboy.GetLY() >= 144) {
+	if (Gameboy.GetLY() >= 144) 
+	{
 		//Mode 1 VBlank >4
 		Gameboy.GetLCDS() &= 0xFC;
 		Gameboy.GetLCDS() |= 0x1;
 		oldMode |= (bool( Gameboy.GetLCDS() & 0x10 ) << 2); //can we interrupt?
-	} else if (LCDCycles <= 80) {
+	} 
+	else if (LCDCycles <= 80) 
+	{
 		//Mode 2 OAM >5
 		Gameboy.GetLCDS() &= 0xFC;
 		Gameboy.GetLCDS() |= 0x2;
 		oldMode |= (bool( Gameboy.GetLCDS() & 0x20 ) << 2);
-	} else if (LCDCycles <= 252) { //80+172
+	} 
+	else if (LCDCycles <= 252) //80+172
+	{ 
 		//Mode DataTransfer 3
 		Gameboy.GetLCDS() |= 0x3;
-	} else {
+	} 
+	else 
+	{
 		//Mode Hblank 0
 		Gameboy.GetLCDS() &= 0xFC;
 		oldMode |= (bool( Gameboy.GetLCDS() & 8 ) << 2);
 	}
 
 	if (oldMode != (Gameboy.GetLCDC() & 3) && (oldMode & 8)) //Our mode changed and we can interrupt
-		Gameboy.RequestInterrupt( lcdStat );
+	{
+		Gameboy.RequestInterrupt(lcdStat);
+	}
 
-	if (Gameboy.GetLY() == Gameboy.GetRawMemory()[0xFF45]) {
+	if (Gameboy.GetLY() == Gameboy.GetRawMemory()[0xFF45]) 
+	{
 		//Compare LY to LYC to see if we're requesting the current line
 		Gameboy.GetLCDS() |= 4;
+
 		if (Gameboy.GetLCDS() & 0x40)
-			Gameboy.RequestInterrupt( lcdStat );
-	} else
-		Gameboy.GetLCDS() &= ~(unsigned( 1 ) << 2);
+		{
+			Gameboy.RequestInterrupt(lcdStat);
+		}
+	} 
+	else
+	{
+		Gameboy.GetLCDS() &= ~(unsigned(1) << 2);
+	}
 }
 
-void LR35902::DrawLine() const 
+void LR35902::DrawLine()  
 {
 	DrawBackground();
 	DrawWindow(); //window == ui
 	DrawSprites();
 }
 
-void LR35902::DrawBackground() const {
+void LR35902::DrawBackground()  
+{
 	assert( Gameboy.GetLCDC() & 0x80 );
-
 	const uint16_t tileSetAdress{ uint16_t( bool( Gameboy.GetLCDC() & 16 ) ? 0x8000 : 0x8800 ) };
 	const uint16_t tileMapAddress{ uint16_t( bool( Gameboy.GetLCDC() & 8 ) ? 0x9C00 : 0x9800 ) };
 	const uint8_t scrollX{ Gameboy.ReadMemory( 0xFF43 ) }; //scroll
@@ -2457,19 +2509,7 @@ void LR35902::DrawBackground() const {
 	ConfigureColorArray( colors, Gameboy.ReadMemory( 0xFF47 ) );
 
 	std::bitset<160 * 144 * 2> &fBuffer{ Gameboy.GetFramebuffer() };
-	//TODO: Invesitgate Threading Bottleneck..
-	/*DrawData data{colors, &Gameboy.GetFramebuffer(),tileSetAdress, tileMapOffset, fbOffset,scrollX, tileY, 0}; //DOUBLE DATA!
-	
-	DrawDataStruct = &data;
-	//std::cout << "Starting Draw\n";
-	ActivateDrawers.notify_all();
-	std::unique_lock<std::mutex> mtx{ConditionalVariableMutex};
 
-	ActivateDrawers.wait( mtx, [&data](){return (data.doneCounter&0x3FF)==0x3ff;} );
-	//std::cout << "Draw DONE!\n";
-	DrawDataStruct = nullptr;*/
-
-#pragma loop(hint_parallel(10))
 	for (uint8_t x{ 0 }; x < 160; ++x) {
 		const uint8_t xWrap{ uint8_t( (x + scrollX) % 256 ) };
 		const uint16_t tileNumAddress{ uint16_t( tileMapOffset + (xWrap / 8) ) };
@@ -2481,14 +2521,21 @@ void LR35902::DrawBackground() const {
 	}
 }
 
-void LR35902::DrawWindow() const {
-	if (!(Gameboy.GetLCDC() & 32)) return; //window disabled
+void LR35902::DrawWindow()  
+{if (!(Gameboy.GetLCDC() & 32)) return; //window disabled
 
 	const uint8_t wndX{ Gameboy.ReadMemory( 0xFF4B ) }; //scroll
 	const uint8_t wndY{ Gameboy.ReadMemory( 0xFF4A ) };
 
-	if (wndX < 7 || wndX >= (160 + 7) || wndY < 0 || wndY >= 144) return;
-	if (wndY > Gameboy.GetLY()) return;
+	if (wndX < 7 || wndX >= (160 + 7) || wndY < 0 || wndY >= 144) 
+	{
+		return;
+	}
+	if (wndY > Gameboy.GetLY()) 
+	{
+		return;
+	}
+
 	const uint16_t tileSetAdress{ uint16_t( bool( Gameboy.GetLCDC() & 16 ) ? 0x8000 : 0x8800 ) }; //If 0x8800 then the tile identifier is in signed TileSET
 	const uint16_t tileMapAddress{ uint16_t( bool( Gameboy.GetLCDC() & 64 ) ? 0x9C00 : 0x9800 ) }; //TileMAP
 	const uint8_t yWrap{ uint8_t( (wndY + Gameboy.GetLY()) % 256 ) };
@@ -2499,8 +2546,9 @@ void LR35902::DrawWindow() const {
 
 	uint8_t colors[4];
 	ConfigureColorArray( colors, Gameboy.ReadMemory( 0xFF47 ) );
-#pragma loop(hint_parallel(20))
-	for (uint8_t x{ uint8_t( (wndX < 0) ? 0 : wndX ) }; x < 160; ++x) {
+
+	for (uint8_t x{ uint8_t( (wndX < 0) ? 0 : wndX ) }; x < 160; ++x) 
+	{
 		const uint8_t tileX{ uint8_t( x % 8 ) }; //The x pixel of the tile
 		const uint16_t tileColumn{ uint16_t( x / 8 ) };
 
@@ -2515,7 +2563,8 @@ void LR35902::DrawWindow() const {
 	}
 }
 
-void LR35902::DrawSprites() const {
+void LR35902::DrawSprites() 
+{
 	if (Gameboy.GetLCDC() & 2) {
 		//todo: support 8x16
 #pragma loop(hint_parallel(20))
@@ -2564,14 +2613,16 @@ void LR35902::DrawSprites() const {
 	}
 }
 
-uint8_t LR35902::ReadPalette( const uint16_t pixelData, const uint8_t xPixel, const uint8_t yPixel ) const {
+uint8_t LR35902::ReadPalette( const uint16_t pixelData, const uint8_t xPixel, const uint8_t yPixel ) const 
+{
 	const uint8_t low{ Gameboy.ReadMemory( pixelData + (yPixel * 2) ) };
 	const uint8_t hi{ Gameboy.ReadMemory( pixelData + (yPixel * 2) + 1 ) };
 
 	return ((hi >> (7 - xPixel) & 1) << 1) | ((low >> (7 - xPixel)) & 1);
 }
 
-void LR35902::ConfigureColorArray( uint8_t *const colorArray, uint8_t palette ) const {
+void LR35902::ConfigureColorArray( uint8_t *const colorArray, uint8_t palette ) const 
+{
 
 	colorArray[0] = palette & 0x3;
 	palette >>= 2;

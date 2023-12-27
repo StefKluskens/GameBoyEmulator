@@ -7,7 +7,8 @@
 #include "MBC1.h"
 
 
-GameBoy::GameBoy( const std::string &gameFile ): GameBoy{} {
+GameBoy::GameBoy( const std::string &gameFile ): GameBoy{}
+{
 	LoadGame( gameFile );
 }
 
@@ -229,12 +230,12 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 
 	
 
-	if (Memory[0xff02] == 0x81)
+	/*if (Memory[0xff02] == 0x81)
 	{
 		char c = Memory[0xff01];
 		printf("%c", c);
 		Memory[0xff02] = 0x0;
-	}
+	}*/
 
 	
 
@@ -277,26 +278,6 @@ void GameBoy::WriteMemory( uint16_t address, uint8_t data )
 	{ 
 		TACTimer = data & 0x7;
 
-		//Memory[address] = data;
-		//
-		//int timerVal = data & 0x03;
-
-		//int clockSpeed = 0;
-
-		//switch (timerVal)
-		//{
-		//	case 0: clockSpeed = 1024; break;
-		//	case 1: clockSpeed = 16; break;
-		//	case 2: clockSpeed = 64; break;
-		//	case 3: clockSpeed = 256; break; // 256
-		//	default: assert(false); break; // weird timer val
-		//}
-
-		//if (clockSpeed != )
-		//{
-
-		//}
-
 	} 
 	else if (address == 0xFF44) //Horizontal scanline reset
 	{ 
@@ -321,6 +302,16 @@ void GameBoy::WriteMemory( uint16_t address, uint8_t data )
 	{
 		Memory[address] = data;
 	}
+
+
+	if (address == 0xFF40)
+	{
+		if (!(data & 0x80))
+		{
+			Memory[0xFF41] &= 0x7C;
+			Memory[0xFF44] &= 0x00;
+		}
+	}
 }
 
 void GameBoy::WriteMemoryWord( const uint16_t pos, const uint16_t value ) {
@@ -338,19 +329,43 @@ void GameBoy::PushWordOntoStack(uint16_t& sp, uint16_t value)
 	WriteMemory(sp, lo);
 }
 
+//void GameBoy::RequestInterrupt(uint8_t bit)
+//{
+//	uint8_t newIF = IF | 0x10;
+//	WriteMemory(0xFF0F, newIF);
+//}
+
+void GameBoy::RequestInterrupt(Interupts bit)
+{
+	IF |= (1 << bit);
+}
+
 void GameBoy::SetKey( const Key key, const bool pressed ) {
-	if (pressed) {
+	if (pressed) 
+	{
 		const uint8_t oldJoyPad{ JoyPadState };
 		JoyPadState &= ~(1 << key);
 
-		if ((oldJoyPad & (1 << key))) { //Previosuly 1
+		if ((oldJoyPad & (1 << key))) //Previosuly 1
+		{ 
 			if (!(Memory[0xff00] & 0x20) && !(key + 1 % 2)) //Button Keys
-				RequestInterrupt( joypad );
+			{
+				RequestInterrupt(joypad);
+				/*uint8_t newIF = IF | 0x10;
+				WriteMemory(0xFF0F, newIF);*/
+			}
 			else if (!(Memory[0xff00] & 0x10) && !(key % 2)) //Directional keys
-				RequestInterrupt( joypad );
+			{
+				RequestInterrupt(joypad);
+				/*uint8_t newIF = IF | 0x10;
+				WriteMemory(0xFF0F, newIF);*/
+			}
 		}
-	} else
+	} 
+	else
+	{
 		JoyPadState |= (1 << key);
+	}
 }
 
 void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudget ) {// This function may be placed under the cpu class...
@@ -383,8 +398,10 @@ void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudge
 				assert( true );
 		}
 
-		while (TIMACycles >= threshold) {
-			if (!++TIMATimer) {
+		while (TIMACycles >= threshold) 
+		{
+			if (!++TIMATimer) 
+			{
 				TIMATimer = TMATimer;
 				IF |= 0x4;
 			}

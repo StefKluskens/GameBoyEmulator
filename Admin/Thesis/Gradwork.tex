@@ -1,0 +1,475 @@
+% Generated on 2023/10/16 15:02:38
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[explicit]{titlesec}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage[many]{tcolorbox}
+\usepackage{standalone}
+\usepackage{animate}
+\tcbuselibrary{listings}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage{multicol}
+\usepackage{makecell}
+\usepackage{adjustbox}
+\usepackage{subfig}
+
+\usepackage{framed}
+\usepackage{lastpage}
+
+
+\usepackage{fancyhdr}
+\usetikzlibrary{calc,arrows.meta,backgrounds}
+
+\newcommand{\msymbol}[1]{\ifmmode #1 \else $#1$\fi}
+
+\newcommand{\daemathvariable}[1]{{\normalsize \color[RGB]{100,149,237}#1}}
+\newcommand{\daemathvalue}[1]{{\normalsize \color[RGB]{153,153,255}#1}}
+\newcommand{\daemath}[1]{{\large \color[RGB]{0,0,0}#1}}
+\newcommand{\daered}[1]{{\normalsize \color[RGB]{234,0,33}#1}}
+\newcommand{\daegreen}[1]{{\normalsize \color[RGB]{0,255,65}#1}}
+\newcommand{\mmathvariable}[1]{{\begingroup  \color[RGB]{100,149,237}#1 \endgroup} }
+\newcommand{\mmathvalue}[1]{{\begingroup  \color[RGB]{153,153,255}#1 \endgroup} }
+\newcommand{\mmath}[1]{{\begingroup  \color[RGB]{0,0,0}#1 \endgroup} }
+\newcommand{\mred}[1]{{\begingroup  \color[RGB]{234,0,33}#1 \endgroup} }
+\newcommand{\mgreen}[1]{{\begingroup  \color[RGB]{0,255,65}#1 \endgroup} }
+\definecolor{backgroundStroke}{RGB}{0,0,0}
+\definecolor{backgroundFill}{RGB}{255,255,255}
+\definecolor{backgroundText}{RGB}{0,0,0}
+\definecolor{bgChapter}{RGB}{91,155,213}
+\definecolor{bgSection}{RGB}{222,234,246}
+\definecolor{fontSubsection}{RGB}{53,124,177}
+\colorlet{shadecolor}{bgChapter}
+
+\renewcommand{\contentsname}{Contents}
+\newcommand{\pbreak}{\vskip 0.5cm}
+\renewcommand{\thesection}{\arabic{section}}
+
+\newcommand{\daechapter}[1]{
+  \chapter*{#1} % Create an unnumbered chapter
+  \addcontentsline{toc}{chapter}{#1} % Add the chapter to the ToC
+}
+
+\newcommand{\daesection}[1]{
+  \section*{#1} % Create an unnumbered chapter
+  \addcontentsline{toc}{chapter}{#1} % Add the chapter to the ToC
+}
+
+\newtcolorbox{ybox}{
+  colback=yellow,
+  colframe=yellow,
+  boxrule=0pt,
+  arc=0pt,
+  outer arc=0pt,
+  boxsep=0pt,
+  left=1pt,
+  right=1pt,
+  top=1pt,
+  bottom=1pt
+}
+
+\newtcolorbox{gbox}{
+  colback=lightgray,
+  colframe=lightgray,
+  boxrule=0pt,
+  arc=0pt,
+  outer arc=0pt,
+  boxsep=0pt,
+  left=1pt,
+  right=1pt,
+  top=1pt,
+  bottom=1pt
+}
+
+
+
+\pagecolor{backgroundFill}
+\color{backgroundText}
+\everymath{\color{backgroundText}}
+
+\titleformat{\chapter}[display]{\normalfont\color{white} \begin {shaded*}\bfseries}{\large\chaptername~\thechapter}{20pt}{\Large#1\end{shaded*}}
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries} 
+  {}{0em} 
+  { 
+    \colorbox{bgSection}{%
+      \parbox{\dimexpr\textwidth-2\fboxsep\relax}{\thesection\quad#1}
+    }
+  }
+  
+\titleformat{\subsection}
+  {\color{fontSubsection}\titlerule\vspace{1ex} \normalfont\large\bfseries}
+  {\thesubsection}{1em}
+  {
+  	\quad #1
+  }
+  
+\titleformat{\subsubsection}
+  {\color{fontSubsection}\titlerule\vspace{1ex}\normalfont\normalsize\bfseries}
+  {\thesubsubsection}{1em}
+  {	
+  	 \quad #1   	 
+  }
+ 
+% information about the gradwork
+\def\title{The title of your gradwork}
+\def\subtitle{Subtitle}
+\def\author{Your name}
+\def\academicyear{2023-2024}
+
+
+\fancyhf{}
+\fancyhead[L]{\author}
+\fancyfoot[L]{DAE - Graduation work 2023-2024}
+\fancyfoot[R]{\thepage/\pageref{LastPage}}
+
+
+\begin{document}
+\pagestyle{fancy}
+
+
+
+
+\begin{titlepage}
+   \begin{center}
+       \vspace*{1cm}
+       \Huge{\title}
+       \vspace{0.5cm}
+       
+       \Large{\subtitle}
+       \vspace{1.5cm}
+       
+       \textbf{\author}
+       \vfill
+       \Large{Graduation work \academicyear}
+      
+     
+		\begin{figure}[h]
+    		\begin{minipage}[t]{0.40\textwidth}
+        		\includegraphics[height=2cm]{logos/Howest_logo.png}
+    		\end{minipage}\hfill
+	    	\begin{minipage}[t]{0.40\textwidth}
+    		    \centering
+		        \includegraphics[height=2cm,trim=2cm 7cm 0.5cm 6cm,clip]{logos/DAE_logo.pdf}
+       
+    		\end{minipage}
+			\vspace{0.8cm}
+		\end{figure}
+   \end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\daechapter{Abstract {\&} Keywords}
+
+\begin{ybox}
+An abstract explains the outline of the paper concisely (the methods, results, etc.). Maximum length of 250 words, preferably both in English and Dutch.
+\end{ybox}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis. Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\daechapter{Preface}
+
+\begin{ybox}
+A preface is a statement of the author's reasons for undertaking the work and may include personal comments that are not directly relevant to other sections of the thesis or dissertation. No word count limit.
+\end{ybox}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis. Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\daechapter{List of figures}
+\addcontentsline{toc}{chapter}{List of figures}
+
+\begin{ybox}
+The list of figures lists the figures in the order in which they appear throughout the thesis. They may be numbered sequentially, or be subdivided following the chapters in which they appear.
+\end{ybox}
+
+\begin{ybox}
+Figure 1: A picture showing something
+\end{ybox}
+
+\begin{ybox}
+Figure 2: A graph showing another thing
+\end{ybox}
+
+\begin{ybox}
+Figure 3.1: A tabel showing yet another thing, that appears in chapter 3.
+\end{ybox}
+
+\daechapter{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+\begin{ybox}
+In the introduction, you write the background of your topic and discuss the observation that spurred you on to do this research project. Explain the purpose of the paper and present your research question(s) and the hypothesis at the end of this section. This section is typically a couple of pages long.
+\end{ybox}
+\pbreak
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+\pbreak
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+\pbreak
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+
+
+
+
+\msymbol{\alpha}
+
+\daechapter{Literature study / Theoretical framework}
+
+\begin{ybox}
+In the literature review, you present the secondary research you have conducted. You detail the background of your topics and write about the concepts that are relevant to the study. Assume that not every reader has the same skillset or -level as you do! This section typically requires a substantial amount of references and can be a lengthy section that requires a considerable amount of pages.
+\end{ybox}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\daechapter{Research}
+
+\begin{ybox}
+In the research section, you detail the elements of your experiment(s), the tests, objects you will test upon and subjects you will test with, the data gathering, data cleaning or feature extraction, measurements, … and you present the results obtained in an objective manner for each of the tests you conducted.
+\end{ybox}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\clearpage
+\section{Topic 1}
+
+\subsection{Sub Topic 1}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\subsubsection{Sub sub Topic 1}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+
+\section{Topic 2}
+
+\subsection{Sub Topic 1}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\subsubsection{Sub sub Topic 1}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\daechapter{Case Study}
+
+\begin{ybox}
+Alternatively, as opposed to research, you might have opted for a case study. Whichever you choose, you detail the elements of your experiment(s), the tests, objects you will test upon and subjects you will test with, the data gathering, data cleaning or feature extraction, measurements, … and you present the results obtained in an objective manner for each of the tests you conducted.
+\end{ybox}
+
+\begin{gbox}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+\end{gbox}
+
+\begin{gbox}
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+\end{gbox}
+
+\begin{gbox}
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+\end{gbox}
+
+\section{Introduction}
+
+\textbf{
+In the introduction, you write the background of your topic, explain the purpose of the paper more broadly, and explain the hypothesis, and the research question(s).}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\section{Modelling}
+
+\subsection{Blockout}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\begin{figure}[h]
+  \centering
+    
+      \includegraphics[trim=2cm 7cm 0.5cm 6cm,width=1.0\linewidth]{logos/DAE_logo.pdf}
+  \caption{The dae logo}
+\end{figure}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\subsection{ZBrush}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\section{Texturing}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\section{Shading}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\section{Lighting}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\daechapter{Discussion}
+
+\begin{ybox}
+In this section, you offer an interpretation of the results you obtained and try to relate them to the theoretical framework you presented. This is typically not a very long section, but obviously one of the most important ones.
+\end{ybox}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\daechapter{Conclusion}
+
+\begin{ybox}
+In this section, you ascertain the demonstrable outcomes of your study and outline the merits of the project for the academic field and the discourse community. This is typically not a very long section, but obviously also one of the more important ones.
+\end{ybox}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\daechapter{Future work}
+
+\begin{ybox}
+This section is sometimes standalone, sometimes incorporated in the conclusion. It looks at the shortcomings of the study, alternative strategies, and what could be the next course of action in the research field. This is typically not a very long section.
+\end{ybox}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\daechapter{Critical Reflection}
+
+\begin{ybox}
+This section is typically associated with a bachelor paper, not other forms of serious writing. It allows the student to reflect on the learning outcomes, both academically and in terms of personal growth.
+\end{ybox}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ac quam nec arcu semper dignissim. Nulla quam magna, varius sit amet pharetra et, dictum quis elit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+
+Proin ullamcorper, ipsum sit amet scelerisque rhoncus, leo quam rhoncus elit, sit amet ullamcorper tellus nisi eget sapien. Suspendisse potenti. Ut non justo viverra, tempus felis vitae, elementum mi. Morbi at dui sed lacus fringilla condimentum. Duis non odio ac arcu volutpat vehicula eu et turpis.
+
+Praesent vitae magna ante. Nulla in orci lacus. Donec quis vestibulum mi. Sed ipsum sapien, pretium maximus purus sed, bibendum consequat lectus. Aliquam porttitor dolor eu gravida vulputate. Vestibulum ut urna eget massa tincidunt ultricies. Morbi hendrerit sapien at diam tincidunt semper. Aliquam ut quam dictum quam maximus tempor sed at felis.
+
+\daechapter{References}
+
+\begin{ybox}
+In this section, you list all the references you made in alphabetical order; consequently adhere to the referencing style you have chosen.
+\end{ybox}
+
+Casey Raes (2014), Processing (second edition). Saccade. (n.d.). In Wikpedia. Retrieved November 6 2016 from https://en.wikipedia.org/wiki/Saccade
+
+Sarah Northway (2016) A year in VR Northway [Powerpoint slides] from https://www.gdcvault.com/play/1024631/A-Year-in-VR-A
+
+\end{document}

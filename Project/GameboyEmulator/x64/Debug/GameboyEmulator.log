@@ -1,2 +1,4 @@
-﻿  MBC1.cpp
+﻿  LR35902.cpp
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\OpcodeDefinitions.cpp(608,50): warning C4293: '<<': shift count negative or too big, undefined behavior
+C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\GameboyEmulator\LR35902.cpp(1245,31): warning C4244: 'argument': conversion from 'uint16_t' to 'const uint8_t', possible loss of data
   GameboyEmulator.vcxproj -> C:\Users\Stef\Documents\School\Year3\GameBoyEmulator\Project\x64\Debug\GameboyEmulator.lib

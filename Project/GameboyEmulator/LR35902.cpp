@@ -192,15 +192,15 @@ void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget,
 //Tho, once the macro has been proven to work, it works...
 //Also, due to MSVC no longer ignoring trailing commas(VS2019) and refusing to parse ## or the _opt_ semantic, you have to use 2 commas when using the variadic part.. :/
 //Note: These multi-line macros might be regarded as unsafe but I don't wanna risk branching so ima leave it like this, yes it's likely the compiler will optimize the if statement out but im not gonna risk it..
-#define OPCYCLE(func, cycl) func; cycles = cycl; break
-#define BASICOPS(A, B, C, D, E, H, L, cycles, funcName, ...) \
-	case A: OPCYCLE( funcName( Register.a __VA_ARGS__), cycles ); \
-	case B: OPCYCLE( funcName( Register.b __VA_ARGS__), cycles ); \
-	case C: OPCYCLE( funcName( Register.c __VA_ARGS__), cycles ); \
-	case D: OPCYCLE( funcName( Register.d __VA_ARGS__), cycles ); \
-	case E: OPCYCLE( funcName( Register.e __VA_ARGS__), cycles ); \
-	case H: OPCYCLE( funcName( Register.h __VA_ARGS__), cycles ); \
-	case L: OPCYCLE( funcName( Register.l __VA_ARGS__), cycles )
+//#define OPCYCLE(func, cycl) func; cycles = cycl; break
+//#define BASICOPS(A, B, C, D, E, H, L, cycles, funcName, ...) \
+//	case A: OPCYCLE( funcName( Register.a __VA_ARGS__), cycles ); \
+//	case B: OPCYCLE( funcName( Register.b __VA_ARGS__), cycles ); \
+//	case C: OPCYCLE( funcName( Register.c __VA_ARGS__), cycles ); \
+//	case D: OPCYCLE( funcName( Register.d __VA_ARGS__), cycles ); \
+//	case E: OPCYCLE( funcName( Register.e __VA_ARGS__), cycles ); \
+//	case H: OPCYCLE( funcName( Register.h __VA_ARGS__), cycles ); \
+//	case L: OPCYCLE( funcName( Register.l __VA_ARGS__), cycles )
 
 void LR35902::ExecuteOpcode( uint8_t opcode ) 
 {
@@ -1185,7 +1185,8 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 		case 0xEA:
 		{
 			const uint16_t adrs{ Gameboy.ReadMemoryWord(Register.pc) };
-			OPCYCLE(LD(adrs, Register.a), 16);
+			LD(adrs, Register.a);
+			cycles = 16;
 			break;
 		}
 		case 0xEE:

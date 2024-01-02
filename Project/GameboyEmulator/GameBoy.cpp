@@ -369,43 +369,86 @@ void GameBoy::SetKey( const Key key, const bool pressed ) {
 }
 
 void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudget ) {// This function may be placed under the cpu class...
-	assert( stepCycles<=0xFF );//if this never breaks, which I highly doubt it will, change the type to uint8
+	//assert( stepCycles<=0xFF );//if this never breaks, which I highly doubt it will, change the type to uint8
 
-	const unsigned cyclesOneDiv{ (cycleBudget / 16384) };
-	if ((DivCycles += stepCycles) >= cyclesOneDiv) { //TODO: turn this into a while loop
-		DivCycles -= cyclesOneDiv;
-		++DIVTimer;
+	//const unsigned cyclesOneDiv{ (cycleBudget / 16384) };
+	//if ((DivCycles += stepCycles) >= cyclesOneDiv) { //TODO: turn this into a while loop
+	//	DivCycles -= cyclesOneDiv;
+	//	++DIVTimer;
+	//}
+
+	//if (TACTimer & 0x4) {
+	//	TIMACycles += stepCycles;
+
+	//	unsigned int threshold;
+	//	switch (TACTimer & 0x3) {
+	//		case 0:
+	//			threshold = cycleBudget / 4096;
+	//			break;
+	//		case 1:
+	//			threshold = cycleBudget / 262144;
+	//			break;
+	//		case 2:
+	//			threshold = cycleBudget / 65536;
+	//			break;
+	//		case 3:
+	//			threshold = cycleBudget / 16384;
+	//			break;
+	//		default:
+	//			assert( true );
+	//	}
+
+	//	while (TIMACycles >= threshold) 
+	//	{
+	//		if (!++TIMATimer) 
+	//		{
+	//			TIMATimer = TMATimer;
+	//			IF |= 0x4;
+	//		}
+	//		TIMACycles -= threshold;
+	//	}
+	//}
+
+	DivCycles += stepCycles;
+
+	while (DivCycles >= 256)
+	{
+		DivCycles -= 256;
+		DIVTimer++;
 	}
 
-	if (TACTimer & 0x4) {
+	if (TACTimer & 0x4)
+	{
 		TIMACycles += stepCycles;
 
-		unsigned int threshold;
+		int threshold;
 		switch (TACTimer & 0x3) {
 			case 0:
-				threshold = cycleBudget / 4096;
+				threshold = 1024;
 				break;
 			case 1:
-				threshold = cycleBudget / 262144;
+				threshold = 16;
 				break;
 			case 2:
-				threshold = cycleBudget / 65536;
+				threshold = 64;
 				break;
 			case 3:
-				threshold = cycleBudget / 16384;
+				threshold = 256;
 				break;
-			default:
-				assert( true );
 		}
 
-		while (TIMACycles >= threshold) 
+		while (TIMACycles >= threshold)
 		{
-			if (!++TIMATimer) 
-			{
-				TIMATimer = TMATimer;
-				IF |= 0x4;
-			}
 			TIMACycles -= threshold;
+			if (TIMATimer == 0xFF)
+			{
+				TIMATimer = ReadMemory(0xFF06);
+				RequestInterrupt(timer);
+			}
+			else
+			{
+				TIMATimer++;
+			}
 		}
 	}
 }

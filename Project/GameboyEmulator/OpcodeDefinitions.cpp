@@ -281,130 +281,33 @@ FINLINE void LR35902::CP( uint8_t toCompare ) {
 //DecimalAdjustA, implementation heavily inspired by Richeson's paper
 FINLINE void LR35902::DAA() 
 {
-	//int newA{ Register.a };
-
-	//if (!Register.subtractF) 
-	//{
-	//	if (Register.halfCarryF || (newA & 0xF) > 9) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
-	//	{
-	//		newA += 0x06; //Overflow (15-9)
-	//	}
-
-	//	if (Register.carryF || (newA > 0x90))
-	//	{
-	//		newA += 0x60; //same overflow for the higher nibble
-	//	}
-	//} 
-	//else //The last operation was a subtraction, we need to honor this
-	//{ 
-	//	if (Register.halfCarryF) 
-	//	{
-	//		/*newA -= 0x06;
-	//		newA &= 0xFF;*/
-	//		newA = (newA - 0x06) & 0xFF;
-	//	}
-	//	if (Register.carryF)
-	//	{
-	//		newA -= 0x60;
-	//	}
-	//}
-
-	//Register.halfCarryF = false;
-
-	//if ((newA & 0x100) == 0x100)
-	//{
-	//	Register.carryF = true;
-	//}
-
-	//newA &= 0xFF;
-
-	////Register.carryF = (newA > 0xFF);
-	//Register.a = (uint8_t)newA;
-	//Register.zeroF = (Register.a == 0);
-
-
-	//uint8_t newA{ Register.a };
-
-	//if (Register.subtractF)
-	//{
-	//	if (Register.carryF) //if we did an initial overflow on the lower nibble or have exceeded 9 (the max value in BCD)
-	//	{
-	//		newA -= 0x60; //Overflow (15-9)
-	//	}
-
-	//	if (Register.halfCarryF)
-	//	{
-	//		newA -= 0x6; //same overflow for the higher nibble
-	//	}
-	//}
-	//else //The last operation was a subtraction, we need to honor this
-	//{
-	//	if (Register.carryF || newA > 0x99)
-	//	{
-	//		newA += 0x60;
-	//		Register.carryF = true;
-	//	}
-	//	if (Register.halfCarryF || (newA & 0xF) > 0x9)
-	//	{
-	//		newA += 0x6;
-	//	}
-	//}
-
-	//Register.a = newA;
-	//Register.carryF = !newA;
-	//Register.halfCarryF = false;
-
-	if (TestBit(Register.a, 6))
+	if (!Register.subtractF) 
 	{
-		if ((Register.f & 0x0F) > 0x09 || Register.a & 0x20)
-		{
-			Register.f -= 0x06;
-
-			if ((Register.f & 0xF0) == 0xF0)
-			{
-				Register.a |= 0x10;
-			}
-			else
-			{
-				Register.a &= ~0x10;
-			}
+		if (Register.carryF || Register.a > 0x99) 
+		{ 
+			Register.a += 0x60; Register.carryF = 1; 
 		}
 
-		if ((Register.f & 0xF0) > 0x90 || Register.a & 0x10)
-		{
-			Register.f -= 0x60;
+		if (Register.halfCarryF || (Register.a & 0x0f) > 0x09) 
+		{ 
+			Register.a += 0x6;
 		}
 	}
-	else
+	else 
 	{
-		if ((Register.f & 0x0F) > 0x09 || Register.a & 0x20)
+		if (Register.carryF) 
 		{
-			Register.f += 0x06;
-
-			if ((Register.f & 0xF0) == 0x00)
-			{
-				Register.a |= 0x10;
-			}
-			else
-			{
-				Register.a &= ~0x10;
-			}
+			Register.a -= 0x60; 
 		}
 
-		if ((Register.f & 0xF0) > 0x90 || Register.a & 0x10)
-		{
-			Register.f += 0x60;
+		if (Register.halfCarryF) 
+		{ 
+			Register.a -= 0x6; 
 		}
 	}
 
-	if (Register.f == 0)
-	{
-		Register.a |= 0x80;
-	}
-	else
-	{
-		Register.a &= ~0x80;
-	}
+	Register.zeroF = (Register.a == 0);
+	Register.halfCarryF = 0;
 }
 FINLINE void LR35902::POP_AF()
 {
@@ -662,7 +565,17 @@ FINLINE void LR35902::SCF() {
 FINLINE void LR35902::HALT() //Until an interrupt
 { 
 	//--Register.pc;
-	m_Halted = true;
+	if (Gameboy.ReadMemory(0xFF0F) & Gameboy.ReadMemory(0xFFFF) & 0x1F)
+	{
+		m_TriggerHaltBug = true;
+		m_Halted = false;
+	}
+	else
+	{
+		m_Halted = true;
+	}	
+
+	//m_Halted = true;
 } 
 
 FINLINE void LR35902::STOP() //Until button press
@@ -673,13 +586,13 @@ FINLINE void LR35902::STOP() //Until button press
 FINLINE void LR35902::DI() 
 { 
 	*(uint8_t*)&InteruptChangePending = 1;
-	//m_ime = false;
+	m_ime = false;
 }
 
 FINLINE void LR35902::EI() 
 { 
 	*((uint8_t*)&InteruptChangePending) = 8; 
-	//m_ime = true;
+	m_ime = true;
 }
 
 FINLINE void LR35902::NOP() {}

@@ -105,8 +105,11 @@ void GameBoy::Update() {
 			lastValidTick = currentTicks;
 			idle = false;
 
-		} else if (!idle) {
-			if (AutoSpeed && ((lastValidTick + timeAdded) - currentTicks) >= .5f) {
+		} 
+		else if (!idle) 
+		{
+			if (AutoSpeed && ((lastValidTick + timeAdded) - currentTicks) >= .5f) 
+			{
 				++SpeedMultiplier;
 			}
 			idle = true;
@@ -192,9 +195,65 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 	return Memory[pos];*/
 
 
+	//if (pos == 0xFF00)
+	//{
+	//	return GetJoypadState();
+	//}
+	//else if (pos == 0xFF04)
+	//{
+	//	return DIVTimer;
+	//}
+	//else if (pos == 0xFF05)
+	//{
+	//	return TIMATimer;
+	//}
+	//else if (pos == 0xFF06)
+	//{
+	//	return TMATimer;
+	//}
+	//else if (pos == 0xFF07)
+	//{
+	//	return TACTimer;
+	//}
+	//else if (pos == 0xFF0F)
+	//{
+	//	return Memory[0xFF0F];
+	//}
+	///*else if (pos < 0x100)
+	//{
+	//	return Memory[pos];
+	//}*/
+	//else if (pos < 0x8000 || (pos >= 0xA000 && pos <= 0xBFFF))
+	//{
+	//	if (m_MBC)
+	//	{
+	//		return m_MBC->ReadByte(pos, Memory);
+	//	}
+	//}
+
+	
+
+	/*if (Memory[0xff02] == 0x81)
+	{
+		char c = Memory[0xff01];
+		printf("%c", c);
+		Memory[0xff02] = 0x0;
+	}*/
+
 	if (pos == 0xFF00)
 	{
-		return GetJoypadState();
+		switch (Memory[0xFF00] & 0x30)
+		{
+		case 0x10:
+			return (uint8_t)(joypadValue & 0x0F) | 0x10;
+			break;
+		case 0x20:
+			return (uint8_t)(joypadValue >> 4) & 0x0F | 0x20;
+			break;
+		default:
+			return 0xFF;
+			break;
+		}
 	}
 	else if (pos == 0xFF04)
 	{
@@ -212,15 +271,20 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 	{
 		return TACTimer;
 	}
-	else if (pos == 0xFF0F)
+	
+	if (pos == 0xFF0F)
 	{
 		return Memory[0xFF0F];
 	}
-	/*else if (pos < 0x100)
+	
+	if (pos < 0x8000)
 	{
-		return Memory[pos];
-	}*/
-	else if (pos < 0x8000 || (pos >= 0xA000 && pos <= 0xBFFF))
+		if (m_MBC)
+		{
+			return m_MBC->ReadByte(pos, Memory);
+		}
+	}
+	else if (pos >= 0xA000 && pos <= 0xBFFF)
 	{
 		if (m_MBC)
 		{
@@ -228,89 +292,160 @@ uint8_t GameBoy::ReadMemory( const uint16_t pos )
 		}
 	}
 
-	
-
-	/*if (Memory[0xff02] == 0x81)
-	{
-		char c = Memory[0xff01];
-		printf("%c", c);
-		Memory[0xff02] = 0x0;
-	}*/
-
-	
-
 	return Memory[pos];
 }
 
 void GameBoy::WriteMemory( uint16_t address, uint8_t data ) 
 {
-	if ((address >= 0x0000 && address <= 0x7FFF) || (address >= 0xA000 && address < 0xBFFF))
+	//if ((address >= 0x0000 && address <= 0x7FFF) || (address >= 0xA000 && address < 0xBFFF))
+	//{
+	//	if (m_MBC)
+	//	{
+	//		m_MBC->WriteByte(address, data, Memory);
+	//	}
+	//}
+	//
+
+	//if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM
+	//{ 
+	//	Memory[address] = data;
+
+	//} 
+	//else if (InRange( address, (uint16_t)0xE000, (uint16_t)0xFDFF )) //ECHO RAM
+	//{ 
+	//	Memory[address] = data;
+	//	Memory[address - 0x2000] = data;
+
+	//} 
+	//else if (InRange( address, (uint16_t)0xFEA0, (uint16_t)0xFEFF )) //Mysterious Restricted Range
+	//{ 
+
+	//} 
+	//else if (address == 0xFF04) //Reset DIV
+	//{ 
+	//	DIVTimer = 0;
+	//	DivCycles = 0;
+
+	//} 
+	//else if (address == 0xFF07) //Set timer Clock speed
+	//{ 
+	//	TACTimer = data & 0x7;
+
+	//} 
+	//else if (address == 0xFF44) //Horizontal scanline reset
+	//{ 
+	//	Memory[address] = 0;
+
+	//}
+	//else if (address == 0xFF45)
+	//{
+	//	Memory[address] = data;
+	//}
+	//else if (address == 0xFF46) //DMA transfer
+	//{ 
+	//	const uint16_t src{ uint16_t( uint16_t( data ) << 8 ) };
+	//	for (int i{ 0 }; i < 0xA0; ++i) 
+	//	{
+	//		//WriteMemory( 0xFE00 + i, ReadMemory( src + i ) );
+	//		Memory[0xFE00 + i] = ReadMemory(src + i);
+	//	}
+
+	//} 
+	//else 
+	//{
+	//	Memory[address] = data;
+	//}
+
+
+	//if (address == 0xFF40)
+	//{
+	//	if (!(data & 0x80))
+	//	{
+	//		Memory[0xFF41] &= 0x7C;
+	//		Memory[0xFF44] &= 0x00;
+	//	}
+	//}
+
+	if (address == 0xFF40)
+	{
+		Memory[address] = data;
+
+		if (!(data & (1 << 7)))
+		{
+			Memory[0xFF44] = 0x00;
+			Memory[0xFF41] &= 0x7C;
+		}
+	}
+
+	if (address >= 0xFEA0 && address <= 0xFEFF)
+	{
+		return;
+	}
+
+	if (address == 0xFF46)
+	{
+		for (uint16_t i = 0; i < 160; i++)
+		{
+			WriteMemory(0xFE00 + i, ReadMemory((data << 8) + i));
+		}
+	}
+
+	if (address == 0xFF04)
+	{
+		DIVTimer = 0;
+	}
+	else if (address == 0xFF05)
+	{
+		TIMATimer = data;
+	}
+	else if (address == 0xFF06)
+	{
+		TMATimer = data;
+	}
+	else if (address == 0xFF07)
+	{
+		TACTimer = data;
+	}
+	else if (address == 0xFF47)
+	{
+		UpdatePalette(palette_BGP, data);
+	}
+	else if (address == 0xFF48)
+	{
+		UpdatePalette(palette_OBP0, data);
+	}
+	else if (address == 0xFF49)
+	{
+		UpdatePalette(palette_OBP1, data);
+	}
+
+	if (address < 0x8000)
 	{
 		if (m_MBC)
 		{
 			m_MBC->WriteByte(address, data, Memory);
 		}
 	}
-	
-
-	if (InRange( address, (uint16_t)0xC000, (uint16_t)0xDFFF )) //Internal RAM
-	{ 
-		Memory[address] = data;
-
-	} 
-	else if (InRange( address, (uint16_t)0xE000, (uint16_t)0xFDFF )) //ECHO RAM
-	{ 
-		Memory[address] = data;
-		Memory[address - 0x2000] = data;
-
-	} 
-	else if (InRange( address, (uint16_t)0xFEA0, (uint16_t)0xFEFF )) //Mysterious Restricted Range
-	{ 
-
-	} 
-	else if (address == 0xFF04) //Reset DIV
-	{ 
-		DIVTimer = 0;
-		DivCycles = 0;
-
-	} 
-	else if (address == 0xFF07) //Set timer Clock speed
-	{ 
-		TACTimer = data & 0x7;
-
-	} 
-	else if (address == 0xFF44) //Horizontal scanline reset
-	{ 
-		Memory[address] = 0;
-
-	}
-	else if (address == 0xFF45)
+	else if (address >= 0xA000 && address < 0xC000)
 	{
-		Memory[address] = data;
-	}
-	else if (address == 0xFF46) //DMA transfer
-	{ 
-		const uint16_t src{ uint16_t( uint16_t( data ) << 8 ) };
-		for (int i{ 0 }; i < 0xA0; ++i) 
+		if (m_MBC)
 		{
-			//WriteMemory( 0xFE00 + i, ReadMemory( src + i ) );
-			Memory[0xFE00 + i] = ReadMemory(src + i);
+			m_MBC->WriteByte(address, data, Memory);
 		}
-
-	} 
-	else 
+	}
+	else
 	{
 		Memory[address] = data;
 	}
 
-
-	if (address == 0xFF40)
+	if (address >= 0x8000 && address < 0x9800)
 	{
-		if (!(data & 0x80))
-		{
-			Memory[0xFF41] &= 0x7C;
-			Memory[0xFF44] &= 0x00;
-		}
+		UpdateTile(address, data);
+	}
+
+	if (address >= 0xFE00 && address <= 0xFE9F)
+	{
+		UpdateSprite(address, data);
 	}
 }
 
@@ -329,42 +464,46 @@ void GameBoy::PushWordOntoStack(uint16_t& sp, uint16_t value)
 	WriteMemory(sp, lo);
 }
 
-//void GameBoy::RequestInterrupt(uint8_t bit)
-//{
-//	uint8_t newIF = IF | 0x10;
-//	WriteMemory(0xFF0F, newIF);
-//}
-
 void GameBoy::RequestInterrupt(Interupts bit)
 {
 	IF |= (1 << bit);
 }
 
 void GameBoy::SetKey( const Key key, const bool pressed ) {
-	if (pressed) 
-	{
-		const uint8_t oldJoyPad{ JoyPadState };
-		JoyPadState &= ~(1 << key);
+	//if (pressed) 
+	//{
+	//	const uint8_t oldJoyPad{ JoyPadState };
+	//	JoyPadState &= ~(1 << key);
 
-		if ((oldJoyPad & (1 << key))) //Previosuly 1
-		{ 
-			if (!(Memory[0xff00] & 0x20) && !(key + 1 % 2)) //Button Keys
-			{
-				RequestInterrupt(joypad);
-				/*uint8_t newIF = IF | 0x10;
-				WriteMemory(0xFF0F, newIF);*/
-			}
-			else if (!(Memory[0xff00] & 0x10) && !(key % 2)) //Directional keys
-			{
-				RequestInterrupt(joypad);
-				/*uint8_t newIF = IF | 0x10;
-				WriteMemory(0xFF0F, newIF);*/
-			}
-		}
-	} 
+	//	if ((oldJoyPad & (1 << key))) //Previosuly 1
+	//	{ 
+	//		if (!(Memory[0xff00] & 0x20) && !(key + 1 % 2)) //Button Keys
+	//		{
+	//			RequestInterrupt(joypad);
+	//			/*uint8_t newIF = IF | 0x10;
+	//			WriteMemory(0xFF0F, newIF);*/
+	//		}
+	//		else if (!(Memory[0xff00] & 0x10) && !(key % 2)) //Directional keys
+	//		{
+	//			RequestInterrupt(joypad);
+	//			/*uint8_t newIF = IF | 0x10;
+	//			WriteMemory(0xFF0F, newIF);*/
+	//		}
+	//	}
+	//} 
+	//else
+	//{
+	//	JoyPadState |= (1 << key);
+	//}
+
+	if (pressed)
+	{
+		joypadValue &= ~(0xFF & key);
+		RequestInterrupt(joypad);
+	}
 	else
 	{
-		JoyPadState |= (1 << key);
+		joypadValue |= (0xFF & key);
 	}
 }
 
@@ -417,12 +556,12 @@ void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudge
 		DIVTimer++;
 	}
 
-	if (TACTimer & 0x4)
+	if (TACTimer & 0x04)
 	{
 		TIMACycles += stepCycles;
 
-		int threshold;
-		switch (TACTimer & 0x3) {
+		int threshold{ 0 };
+		switch (TACTimer & 0x03) {
 			case 0:
 				threshold = 1024;
 				break;
@@ -453,19 +592,70 @@ void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudge
 	}
 }
 
-uint8_t GameBoy::GetJoypadState() const {
-	uint8_t res{ Memory[0xff00] };
+//uint8_t GameBoy::GetJoypadState() const {
+//	uint8_t res{ Memory[0xff00] };
+//
+//	if (!(res & 0x20)) { //Button keys
+//		res |= !!(JoyPadState & (1 << JOYPAD_A));
+//		res |= !!(JoyPadState & (1 << JOYPAD_B)) << 1;
+//		res |= !!(JoyPadState & (1 << JOYPAD_SELECT)) << 2;
+//		res |= !!(JoyPadState & (1 << JOYPAD_START)) << 3;
+//	} else if (!(res & 0x10)) {
+//		res |= !!(JoyPadState & (1 << JOYPAD_RIGHT));
+//		res |= !!(JoyPadState & (1 << JOYPAD_LEFT)) << 1;
+//		res |= !!(JoyPadState & (1 << JOYPAD_UP)) << 2;
+//		res |= !!(JoyPadState & (1 << JOYPAD_DOWN)) << 3;
+//	}
+//	return res;
+//}
 
-	if (!(res & 0x20)) { //Button keys
-		res |= !!(JoyPadState & (1 << aButton));
-		res |= !!(JoyPadState & (1 << bButton)) << 1;
-		res |= !!(JoyPadState & (1 << select)) << 2;
-		res |= !!(JoyPadState & (1 << start)) << 3;
-	} else if (!(res & 0x10)) {
-		res |= !!(JoyPadState & (1 << right));
-		res |= !!(JoyPadState & (1 << left)) << 1;
-		res |= !!(JoyPadState & (1 << up)) << 2;
-		res |= !!(JoyPadState & (1 << down)) << 3;
+void GameBoy::UpdateTile(uint16_t lAddress, uint8_t data)
+{
+	uint16_t address = lAddress & 0xFFFE;
+
+	uint16_t tile = (address >> 4) & 511;
+	uint16_t y = (address >> 1) & 7;
+
+	uint8_t bitIndex;
+	for (uint8_t x = 0; x < 8; x++)
+	{
+		bitIndex = 1 << (7 - x);
+
+		tiles[tile].pixels[y][x] = ((Memory[address] & bitIndex) ? 1 : 0) + ((Memory[address + 1] & bitIndex) ? 2 : 0);
 	}
-	return res;
+}
+
+void GameBoy::UpdateSprite(uint16_t lAddress, uint8_t data)
+{
+	uint16_t address = lAddress - 0xFE00;
+
+	Sprite* sprite = &sprites[address >> 2];
+	sprite->ready = false;
+
+	switch (address & 3)
+	{
+	case 0:
+		sprite->y = data - 16;
+		break;
+	case 1:
+		sprite->x = data - 8;
+		break;
+	case 2:
+		sprite->tile = data;
+		break;
+	case 3:
+		sprite->options.value = data;
+		sprite->colourPalette = (sprite->options.paletteNumber) ? palette_OBP1 : palette_OBP0;
+		sprite->ready = true;
+	default:
+		break;
+	}
+}
+
+void GameBoy::UpdatePalette(Colour* palette, uint8_t data)
+{
+	palette[0] = palette_colours[data & 0x3];
+	palette[1] = palette_colours[(data >> 2) & 0x3];
+	palette[2] = palette_colours[(data >> 4) & 0x3];
+	palette[3] = palette_colours[(data >> 6) & 0x3];
 }

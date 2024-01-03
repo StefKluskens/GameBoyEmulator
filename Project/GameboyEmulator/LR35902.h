@@ -5,6 +5,7 @@
 #include <thread>
 #include <condition_variable>
 #include <array>
+
 class GameBoy;
 
 
@@ -83,9 +84,12 @@ public:
 	 * \note A Rudementary interupt handler
 	 */
 	void HandleInterupts();
+	bool HandeInterrupts();
 	void HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept;
 
 	Registers& GetRegisters() { return Register; }
+
+	bool canRender{ false };
 private:
 	struct DrawData {
 		const uint8_t *const colors; //[4]
@@ -115,17 +119,65 @@ private:
 	bool InteruptChangePending{ false }; ///< When an interupt change is requested, it gets pushed after the next opcode\note lsb==Disable, msb==Enable
 	bool m_Halted{ false };
 	bool m_ime{ false };
+	bool m_TriggerHaltBug{ false };
 
 	int m_ScreenWidth{ 144 };
 	int m_ScreenHeight{ 160 };
+
+	uint8_t* scrollX;
+	uint8_t* scrollY;
+	uint8_t* scanline;
+	uint32_t tick;
+
+	struct Control {
+		union {
+			struct {
+				uint8_t bgDisplay : 1;
+				uint8_t spriteDisplayEnable : 1;
+				uint8_t spriteSize : 1; // True means 8x16 tiles
+				uint8_t bgDisplaySelect : 1;
+				uint8_t bgWindowDataSelect : 1;
+				uint8_t windowEnable : 1;
+				uint8_t windowDisplaySelect : 1;
+				uint8_t lcdEnable : 1;
+			};
+		};
+	} *control;
+
+	struct Stat {
+		union {
+			struct {
+				uint8_t mode_flag : 2;
+				uint8_t coincidence_flag : 1;
+				uint8_t hblank_interrupt : 1;
+				uint8_t vblank_interrupt : 1;
+				uint8_t oam_interrupt : 1;
+				uint8_t coincidence_interrupt : 1;
+			};
+		};
+	} *stat;
+
+	uint8_t background[32 * 32];
+
+	//Colour framebuffer[160 * 144];
+
+	int mode = 0;
+	int modeclock = 0;
+
+	void CompareLy_LYC();
+	bool IsInterruptEnabled( const uint8_t interrupt ) const;
+	bool IsInterruptFlagSet( const uint8_t interrupt ) const;
+	void TriggerInterrupt(const uint8_t interrupt, uint8_t jumpPc);
 
 	void ExecuteOpcode( uint8_t opcode );
 	uint8_t ExecuteExtendedOpcode( uint8_t opcode );
 	void ConfigureLCDStatus();
 	void DrawLine();
 	void DrawBackground();
+	void DrawBackground(bool* rowPixels);
 	void DrawWindow();
 	void DrawSprites();
+	void DrawSprites(bool* rowPixels);
 	uint8_t ReadPalette( const uint16_t pixelData, const uint8_t xPixel, const uint8_t yPixel ) const;
 	void ConfigureColorArray( uint8_t *const colorArray, uint8_t palette ) const;
 	//void ThreadWork( const uint8_t id, DrawData **const drawData );

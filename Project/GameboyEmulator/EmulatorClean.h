@@ -1,12 +1,24 @@
 #pragma once
 #include <string>
 #include <bitset>
+class GameBoy;
 
 /**
  * \brief GameBoy Emulation Environment
  */
 namespace gbee {
-	enum Key : uint8_t { right, aButton, left, bButton, up, select, down, start };
+	//enum Key : uint8_t { right, aButton, left, bButton, up, select, down, start };
+	enum Key {
+		JOYPAD_A = (1 << 0),
+		JOYPAD_B = (1 << 1),
+		JOYPAD_SELECT = (1 << 2),
+		JOYPAD_START = (1 << 3),
+
+		JOYPAD_RIGHT = (1 << 4),
+		JOYPAD_LEFT = (1 << 5),
+		JOYPAD_UP = (1 << 6),
+		JOYPAD_DOWN = (1 << 7),
+	};
 	
 	/**
 	 * \brief This class handles the entire emulation environment
@@ -90,5 +102,7 @@ namespace gbee {
 		 * \note In the end, no real benefit is gained from this. Setting the speed crazy high and the auto adjuster disabled will also guarantee the highest speed
 		 */
 		void SetAutoSpeed( const bool onOff, const uint8_t instanceID ) const;
+
+		GameBoy& GetInstance(const uint8_t instanceID) const;
 	};
 }

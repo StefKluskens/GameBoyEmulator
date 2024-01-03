@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "LR35902.h"
-#include "GameBoy.h"
 #include "OpcodeDefinitions.cpp" //Inlines..
 #ifdef _DEBUG
 //#define VERBOSE
@@ -69,6 +68,21 @@ void LR35902::Reset(const bool skipBoot) {
 		memory[0xFF4A] = 0x00;
 		memory[0xFF4B] = 0x00;
 		memory[0xFFFF] = 0x00;
+
+		memory[0xFF0F] = 0xE1;
+		Gameboy.WriteMemory(0xFF41, 0x80);
+		Gameboy.WriteMemory(0xFF42, 0x91);
+
+		Gameboy.GetDIV() = 0xD3;
+		Gameboy.GetTIMA() = 0x00;
+		Gameboy.GetTMA() = 0x00;
+		Gameboy.GetTAC() = 0xF8;
+
+		control = (Control*)&memory[0xFF40];
+		stat = (Stat*)&memory[0xFF41];
+		scrollY = &memory[0xFF42];
+		scrollX = &memory[0xFF43];
+		scanline = &memory[0xFF44];
 	}
 }
 
@@ -93,6 +107,9 @@ void LR35902::ExecuteNextOpcode()
 
 	}
 #endif
+	
+	
+	
 	const uint8_t opcode{ Gameboy.ReadMemory(Register.pc++) };
 	ExecuteOpcode(opcode);
 
@@ -109,6 +126,24 @@ void LR35902::ExecuteNextOpcode()
 			InteruptChangePending = false;
 		}
 	}
+
+	/*if (m_Halted)
+	{
+		Gameboy.AddCycles(4);
+		return;
+	}
+
+	const uint8_t opcode{ Gameboy.ReadMemory(Register.pc) };
+
+	if (!m_TriggerHaltBug)
+	{
+		Register.pc++;
+	}
+
+	m_TriggerHaltBug = false;
+
+	
+	ExecuteOpcode(opcode);*/
 }
 
 void LR35902::HandleInterupts() 
@@ -149,41 +184,178 @@ void LR35902::HandleInterupts()
 	}
 }
 
-void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept 
+bool LR35902::HandeInterrupts()
 {
-	const unsigned cyclesOneDraw{ 456 };
-	ConfigureLCDStatus(); //This is why we can't "speed this up" in the traditional sense, games are sensitive to this
-
-	if (Gameboy.GetLY() > 153) 
+	if (Gameboy.ReadMemory(0xFFFF) & Gameboy.ReadMemory(0xFF0F) & 0x0F)
 	{
-		Gameboy.GetLY() = 0;
+		m_Halted = false;
 	}
 
-	if ((Gameboy.GetLCDC() & 0x80)) 
+	if (!(m_ime & 1U))
 	{
-		if ((LCDCycles += cycles) >= cyclesOneDraw) 
-		{ //LCD enabled and we're at our cycle mark
-			LCDCycles = 0;
-			uint8_t dirtyLY;
+		return false;
+	}
 
-			if ((dirtyLY = ++Gameboy.GetLY()) == 144) 
+	if (IsInterruptEnabled(vBlank) && IsInterruptFlagSet(vBlank))
+	{
+		TriggerInterrupt(vBlank, 0x40);
+		return true;
+	}
+
+	if (IsInterruptEnabled(lcdStat) && IsInterruptFlagSet(lcdStat))
+	{
+		TriggerInterrupt(lcdStat, 0x48);
+		return true;
+	}
+
+	if (IsInterruptEnabled(timer) && IsInterruptFlagSet(timer))
+	{
+		TriggerInterrupt(timer, 0x50);
+		return true;
+	}
+
+	if (IsInterruptEnabled(serial) && IsInterruptFlagSet(serial))
+	{
+		TriggerInterrupt(serial, 0x58);
+		return true;
+	}
+
+	if (IsInterruptEnabled(joypad) && IsInterruptFlagSet(joypad))
+	{
+		TriggerInterrupt(joypad, 0x60);
+		return true;
+	}
+
+	return false;
+}
+
+void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept 
+{
+	//const unsigned cyclesOneDraw{ 456 };
+	//ConfigureLCDStatus(); //This is why we can't "speed this up" in the traditional sense, games are sensitive to this
+
+	//if (Gameboy.GetLY() > 153) 
+	//{
+	//	Gameboy.GetLY() = 0;
+	//}
+
+	//if ((Gameboy.GetLCDC() & 0x80)) 
+	//{
+	//	if ((LCDCycles += cycles) >= cyclesOneDraw) 
+	//	{ //LCD enabled and we're at our cycle mark
+	//		LCDCycles = 0;
+	//		uint8_t dirtyLY;
+
+	//		if ((dirtyLY = ++Gameboy.GetLY()) == 144) 
+	//		{
+	//			Gameboy.RequestInterrupt( vBlank );
+
+	//			/*uint8_t newIF = Gameboy.GetIF() | 0x01;
+	//			Gameboy.WriteMemory(0xFF0F, newIF);*/
+	//		}
+
+	//		if (Gameboy.GetLY() > 153)
+	//		{
+	//			Gameboy.GetLY() = 0;
+	//		}
+
+	//		if (dirtyLY < 144 && draw) 
+	//		{
+	//			DrawLine();
+	//		}
+	//	}
+	//}
+
+	modeclock += cycles;
+
+	if (!control->lcdEnable)
+	{
+		mode = 0;
+
+		if (modeclock >= 70224)
+		{
+			modeclock -= 70224;
+		}
+
+		return;
+	}
+
+	switch (mode)
+	{
+	case 0: //H-Blank
+		if (modeclock >= 204)
+		{
+			modeclock -= 204;
+			mode = 2;
+
+			*scanline += 1;
+
+			CompareLy_LYC();
+
+			if (*scanline == 144)
 			{
-				Gameboy.RequestInterrupt( vBlank );
+				mode = 1;
+				canRender = true;
+				Gameboy.RequestInterrupt(vBlank);
 
-				/*uint8_t newIF = Gameboy.GetIF() | 0x01;
-				Gameboy.WriteMemory(0xFF0F, newIF);*/
+				if (stat->vblank_interrupt)
+				{
+					Gameboy.RequestInterrupt(lcdStat);
+				}
+			}
+			else if (stat->oam_interrupt)
+			{
+				Gameboy.RequestInterrupt(lcdStat);
 			}
 
-			if (Gameboy.GetLY() > 153)
-			{
-				Gameboy.GetLY() = 0;
-			}
+			Gameboy.WriteMemory(0xFF41, (Gameboy.ReadMemory(0xFF41) & 0xFC) | (mode & 3));
+		}
+		break;
+	case 1: //V-Blank
+		if (modeclock >= 456)
+		{
+			modeclock -= 456;
+			*scanline += 1;
 
-			if (dirtyLY < 144 && draw) 
+			CompareLy_LYC();
+
+			if (*scanline == 153)
 			{
-				DrawLine();
+				*scanline = 0;
+				mode = 2;
+				Gameboy.WriteMemory(0xFF41, (Gameboy.ReadMemory(0xFF41) & 0xFC) | (mode & 3));
+
+				if (stat->oam_interrupt)
+				{
+					Gameboy.RequestInterrupt(lcdStat);
+				}
 			}
 		}
+		break;
+	case 2:	//OAM
+		if (modeclock >= 80)
+		{
+			modeclock -= 80;
+			mode = 3;
+			Gameboy.WriteMemory(0xFF41, (Gameboy.ReadMemory(0xFF41) & 0xFC) | (mode & 3));
+		}
+		break;
+	case 3: //VRAM
+		if (modeclock >= 172)
+		{
+			modeclock -= 172;
+			mode = 0;
+
+			DrawLine();
+
+			Gameboy.WriteMemory(0xFF41, (Gameboy.ReadMemory(0xFF41) & 0xFC) | (mode & 3));
+
+			if (stat->hblank_interrupt)
+			{
+				Gameboy.RequestInterrupt(lcdStat);
+			}
+		}
+		break;
 	}
 }
 
@@ -202,7 +374,46 @@ void LR35902::HandleGraphics( const unsigned cycles, const unsigned cycleBudget,
 //	case H: OPCYCLE( funcName( Register.h __VA_ARGS__), cycles ); \
 //	case L: OPCYCLE( funcName( Register.l __VA_ARGS__), cycles )
 
-void LR35902::ExecuteOpcode( uint8_t opcode ) 
+void LR35902::CompareLy_LYC()
+{
+	uint8_t lyc = Gameboy.ReadMemory(0xFF45);
+	stat->coincidence_flag = int(lyc == *scanline);
+
+	if (lyc == *scanline && stat->coincidence_interrupt)
+	{
+		Gameboy.RequestInterrupt(lcdStat);
+	}
+}
+
+bool LR35902::IsInterruptEnabled(const uint8_t interrupt) const
+{
+	return (Gameboy.ReadMemory(0xFFFF) & interrupt);
+}
+
+bool LR35902::IsInterruptFlagSet(const uint8_t interrupt) const
+{
+	return (Gameboy.ReadMemory(0xFF0F) & interrupt);
+}
+
+void LR35902::TriggerInterrupt(const uint8_t interrupt, uint8_t jumpPc)
+{
+	//Write short stack
+	Register.sp -= 2;
+	Gameboy.WriteMemoryWord(Register.sp, Register.pc);
+
+	Register.pc = jumpPc;
+	m_ime = (int(false) << 0);
+
+	uint8_t IfValue = Gameboy.ReadMemory(0xFF0F);
+	IfValue &= ~interrupt;
+	return Gameboy.WriteMemory(0xFF0F, IfValue);
+
+	m_Halted = false;
+
+	Gameboy.AddCycles(20);
+}
+
+void LR35902::ExecuteOpcode( uint8_t opcode )
 {
 	assert( Gameboy.ReadMemory(Register.pc-1) == opcode ); //pc is pointing to first argument
 	uint8_t cycles{};
@@ -739,7 +950,18 @@ void LR35902::ExecuteOpcode( uint8_t opcode )
 			cycles = 8;
 			break;
 		case 0x76:
-			HALT();
+			/*HALT();
+			cycles = 4;*/
+			if (!(m_ime & 1U) && (Gameboy.ReadMemory(0xFF0F) & Gameboy.ReadMemory(0xFFFF) & 0x1F))
+			{
+				m_TriggerHaltBug = true;
+				m_Halted = false;
+			}
+			else
+			{
+				m_Halted = true;
+			}
+
 			cycles = 4;
 			break;
 		case 0x77:
@@ -2490,9 +2712,15 @@ void LR35902::ConfigureLCDStatus()
 
 void LR35902::DrawLine()  
 {
-	DrawBackground();
-	DrawWindow(); //window == ui
-	DrawSprites();
+	bool rowPixels[160] = { 0 };
+
+	DrawBackground(rowPixels);
+	DrawWindow();
+	DrawSprites(rowPixels);
+
+	//DrawBackground();
+	//DrawWindow(); //window == ui
+	//DrawSprites();
 }
 
 void LR35902::DrawBackground()  
@@ -2522,45 +2750,147 @@ void LR35902::DrawBackground()
 	}
 }
 
+void LR35902::DrawBackground(bool* rowPixels)
+{
+	uint16_t address{ 0x9800 };
+
+	if (control->bgDisplaySelect)
+	{
+		address += 0x400;
+	}
+
+	address += ((*scrollY + *scanline) / 8 * 32) % (32 * 32);
+
+	uint16_t startRowAddress{ address };
+	uint16_t endRowAddress{ uint16_t(address + 32) };
+	address += (*scrollX >> 3);
+
+	int x = *scrollX & 7;
+	int y = (*scanline + *scrollY) & 7;
+	int pixelOffset = *scanline * 160;
+
+	int pixel = 0;
+	for (int i = 0; i < 21; i++)
+	{
+		uint16_t tileAddress = address + i;
+		if (tileAddress >= endRowAddress)
+		{
+			tileAddress = (startRowAddress + tileAddress % endRowAddress);
+		}
+
+		int tile = Gameboy.ReadMemory(tileAddress);
+		if (!control->bgWindowDataSelect && tile < 128)
+		{
+			tile += 256;
+		}
+
+		for (; x < 8; x++)
+		{
+			if (pixel >= 160)
+			{
+				return;
+			}
+
+			int colour = Gameboy.tiles[tile].pixels[y][x];
+			Gameboy.framebuffer[pixelOffset++] = Gameboy.palette_BGP[colour];
+
+			if (colour > 0)
+			{
+				rowPixels[pixel] = true;
+			}
+
+			pixel++;
+		}
+
+		x = 0;
+	}
+}
+
 void LR35902::DrawWindow()  
-{if (!(Gameboy.GetLCDC() & 32)) return; //window disabled
+{
+	//if (!(Gameboy.GetLCDC() & 32)) return; //window disabled
 
-	const uint8_t wndX{ Gameboy.ReadMemory( 0xFF4B ) }; //scroll
-	const uint8_t wndY{ Gameboy.ReadMemory( 0xFF4A ) };
+	//const uint8_t wndX{ Gameboy.ReadMemory( 0xFF4B ) }; //scroll
+	//const uint8_t wndY{ Gameboy.ReadMemory( 0xFF4A ) };
 
-	if (wndX < 7 || wndX >= (160 + 7) || wndY < 0 || wndY >= 144) 
+	//if (wndX < 7 || wndX >= (160 + 7) || wndY < 0 || wndY >= 144) 
+	//{
+	//	return;
+	//}
+	//if (wndY > Gameboy.GetLY()) 
+	//{
+	//	return;
+	//}
+
+	//const uint16_t tileSetAdress{ uint16_t( bool( Gameboy.GetLCDC() & 16 ) ? 0x8000 : 0x8800 ) }; //If 0x8800 then the tile identifier is in signed TileSET
+	//const uint16_t tileMapAddress{ uint16_t( bool( Gameboy.GetLCDC() & 64 ) ? 0x9C00 : 0x9800 ) }; //TileMAP
+	//const uint8_t yWrap{ uint8_t( (wndY + Gameboy.GetLY()) % 256 ) };
+	//const uint8_t tileY{ uint8_t( yWrap % 8 ) }; //The y pixel of the tile
+	//const uint16_t tileRow{ uint16_t( yWrap / 8 ) };
+	//const uint16_t tileMapOffset{ uint16_t( tileMapAddress + tileRow * 32 ) };
+	//const uint8_t fbOffset{ uint8_t( (Gameboy.GetLY() - 1) * 160 ) };
+
+	//uint8_t colors[4];
+	//ConfigureColorArray( colors, Gameboy.ReadMemory( 0xFF47 ) );
+
+	//for (uint8_t x{ uint8_t( (wndX < 0) ? 0 : wndX ) }; x < 160; ++x) 
+	//{
+	//	const uint8_t tileX{ uint8_t( x % 8 ) }; //The x pixel of the tile
+	//	const uint16_t tileColumn{ uint16_t( x / 8 ) };
+
+	//	const uint16_t tileNumAddress{ uint16_t( tileMapOffset + tileColumn ) };
+	//	const int16_t tileNumber{ Gameboy.ReadMemory( tileNumAddress ) };
+
+	//	const uint16_t tileAddress{ uint16_t( tileSetAdress + tileNumber * 16 ) }; //todo: Verify
+
+	//	const uint8_t paletteResult{ ReadPalette( tileAddress, tileX, tileY ) };
+	//	Gameboy.GetFramebuffer()[(fbOffset + x) * 2] = (colors[paletteResult] & 2);
+	//	Gameboy.GetFramebuffer()[((fbOffset + x) * 2) + 1] = (colors[paletteResult] & 1);
+	//}
+
+	if (!control->windowEnable)
 	{
 		return;
 	}
-	if (wndY > Gameboy.GetLY()) 
+
+	if (Gameboy.ReadMemory(0xFF4A) > *scanline)
 	{
 		return;
 	}
 
-	const uint16_t tileSetAdress{ uint16_t( bool( Gameboy.GetLCDC() & 16 ) ? 0x8000 : 0x8800 ) }; //If 0x8800 then the tile identifier is in signed TileSET
-	const uint16_t tileMapAddress{ uint16_t( bool( Gameboy.GetLCDC() & 64 ) ? 0x9C00 : 0x9800 ) }; //TileMAP
-	const uint8_t yWrap{ uint8_t( (wndY + Gameboy.GetLY()) % 256 ) };
-	const uint8_t tileY{ uint8_t( yWrap % 8 ) }; //The y pixel of the tile
-	const uint16_t tileRow{ uint16_t( yWrap / 8 ) };
-	const uint16_t tileMapOffset{ uint16_t( tileMapAddress + tileRow * 32 ) };
-	const uint8_t fbOffset{ uint8_t( (Gameboy.GetLY() - 1) * 160 ) };
-
-	uint8_t colors[4];
-	ConfigureColorArray( colors, Gameboy.ReadMemory( 0xFF47 ) );
-
-	for (uint8_t x{ uint8_t( (wndX < 0) ? 0 : wndX ) }; x < 160; ++x) 
+	uint16_t address = 0x9800;
+	if (control->windowDisplaySelect)
 	{
-		const uint8_t tileX{ uint8_t( x % 8 ) }; //The x pixel of the tile
-		const uint16_t tileColumn{ uint16_t( x / 8 ) };
+		address += 0x400;
+	}
 
-		const uint16_t tileNumAddress{ uint16_t( tileMapOffset + tileColumn ) };
-		const int16_t tileNumber{ Gameboy.ReadMemory( tileNumAddress ) };
+	address += ((*scanline - Gameboy.ReadMemory(0xFF4A)) / 8) * 32;
+	int y = (*scanline - Gameboy.ReadMemory(0xFF4A)) & 7;
+	int x = 0;
 
-		const uint16_t tileAddress{ uint16_t( tileSetAdress + tileNumber * 16 ) }; //todo: Verify
+	int pixelOffset = *scanline * 160;
+	pixelOffset += Gameboy.ReadMemory(0xFF4B) - 7;
+	for (uint16_t tileAddress = address; tileAddress < address + 20; tileAddress++)
+	{
+		int tile = Gameboy.ReadMemory(tileAddress);
 
-		const uint8_t paletteResult{ ReadPalette( tileAddress, tileX, tileY ) };
-		Gameboy.GetFramebuffer()[(fbOffset + x) * 2] = (colors[paletteResult] & 2);
-		Gameboy.GetFramebuffer()[((fbOffset + x) * 2) + 1] = (colors[paletteResult] & 1);
+		if (!control->bgWindowDataSelect && tile < 128)
+		{
+			tile += 256;
+		}
+
+		for (; x < 8; x++)
+		{
+			if (pixelOffset > sizeof(Gameboy.framebuffer))
+			{
+				continue;
+			}
+
+			int colour = Gameboy.tiles[tile].pixels[y][x];
+			Gameboy.framebuffer[pixelOffset++] = Gameboy.palette_BGP[colour];
+		}
+
+		x = 0;
 	}
 }
 
@@ -2609,6 +2939,86 @@ void LR35902::DrawSprites()
 						Gameboy.GetFramebuffer()[i * 2 + 1] = spriteColors[paletteIndex] & 1;
 					}
 				}
+			}
+		}
+	}
+}
+
+void LR35902::DrawSprites(bool* rowPixels)
+{
+	int spriteHeight = control->spriteSize ? 16 : 8;
+
+	bool visibleSprites[40];
+	int spriteRowCount = 0;
+
+	for (int i = 39; i >= 0; i--)
+	{
+		auto sprite = Gameboy.sprites[i];
+
+		if (!sprite.ready)
+		{
+			visibleSprites[i] = false;
+			continue;
+		}
+
+		if ((sprite.y > *scanline) || ((sprite.y + spriteHeight) <= *scanline))
+		{
+			visibleSprites[i] = false;
+			continue;
+		}
+
+		visibleSprites[i] = spriteRowCount++ <= 10;
+	}
+
+	for (int i = 39; i >= 0; i--)
+	{
+		if (!visibleSprites[i])
+		{
+			continue;
+		}
+
+		auto sprite = Gameboy.sprites[i];
+
+		if ((sprite.x < -7) || (sprite.x >= 160))
+		{
+			continue;
+		}
+
+		int pixelY = *scanline - sprite.y;
+		pixelY = sprite.options.yFlip ? (7 + 8 * control->spriteSize) - pixelY : pixelY;
+
+		for (int x = 0; x < 8; x++)
+		{
+			int tileNum = sprite.tile & (control->spriteSize ? 0xFE : 0xFF);
+			int colour = 0;
+
+			int xTemp = sprite.x + x;
+			if (xTemp < 0 || xTemp >= 160)
+			{
+				continue;
+			}
+
+			int pixelOffset = *scanline * 160 + xTemp;
+
+			uint8_t pixelX = sprite.options.xFlip ? (7 - x) : x;
+
+			if (control->spriteSize && (pixelY >= 8))
+			{
+				colour = Gameboy.tiles[tileNum + 1].pixels[pixelY - 8][pixelX];
+			}
+			else
+			{
+				colour = Gameboy.tiles[tileNum].pixels[pixelY][pixelX];
+			}
+
+			if (!colour)
+			{
+				continue;
+			}
+
+			if (!rowPixels[xTemp] || !sprite.options.renderPriority)
+			{
+				Gameboy.framebuffer[pixelOffset] = sprite.colourPalette[colour];
 			}
 		}
 	}

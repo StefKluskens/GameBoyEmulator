@@ -9,8 +9,28 @@ class MemoryBankController;
 
 enum MBCs : uint8_t { none, mbc1, mbc2, mbc3, mbc4, mbc5 };
 enum Interupts : uint8_t { vBlank, lcdStat, timer, serial, joypad };
-enum Key : uint8_t { right, aButton, left, bButton, up, select, down, start };
+//enum Key : uint8_t { right, aButton, left, bButton, up, select, down, start };
 
+enum Key {
+	JOYPAD_A = (1 << 0),
+	JOYPAD_B = (1 << 1),
+	JOYPAD_SELECT = (1 << 2),
+	JOYPAD_START = (1 << 3),
+
+	JOYPAD_RIGHT = (1 << 4),
+	JOYPAD_LEFT = (1 << 5),
+	JOYPAD_UP = (1 << 6),
+	JOYPAD_DOWN = (1 << 7),
+};
+
+struct Colour final {
+	union {
+		struct {
+			uint8_t r, g, b, a;
+		};
+		uint8_t colours[4];
+	};
+};
 
 struct GameHeader final {
 	char title[16 + 1]{}; //0x0134-0x0143 (depending on the cartridge, a manufacturer and cgb flag might be mixed in here)
@@ -119,12 +139,77 @@ public:
 	 */
 	void SetOnlyDrawLastFrame( const bool state ) noexcept { OnlyDrawLast = state; }
 
+	uint8_t& GetDIV() noexcept { return DIVTimer; }
+	uint8_t& GetTIMA() noexcept { return TIMATimer; }
+	uint8_t& GetTMA() noexcept { return TMATimer; }
+	uint8_t& GetTAC() noexcept { return TACTimer; }
+
+	struct Sprite {
+		bool ready;
+		int y;
+		int x;
+		uint8_t tile;
+		Colour* colourPalette;
+		struct {
+			union {
+				struct {
+					uint8_t gbcPaletteNumber1 : 1;
+					uint8_t gbcPaletteNumber2 : 1;
+					uint8_t gbcPaletteNumber3 : 1;
+					uint8_t gbcVRAMBank : 1;
+					uint8_t paletteNumber : 1;
+					uint8_t xFlip : 1;
+					uint8_t yFlip : 1;
+					uint8_t renderPriority : 1;
+				};
+				uint8_t value;
+			};
+		} options;
+	}sprites[40] = { Sprite() };
+
+	struct Tile {
+		uint8_t  pixels[8][8] = { 0 };
+	} tiles[384];
+
+	const Colour palette_colours[4] = {
+			{ 255, 255, 255, 255},
+			{ 192,192,192,255},
+			{ 96,96,96, 255 },
+			{ 0, 0, 0, 255 },
+	};
+
+	Colour palette_BGP[4] = {
+			{ 255, 255, 255, 255},
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+	};
+
+	Colour palette_OBP0[4] = {
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+	};
+
+	Colour palette_OBP1[4] = {
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+			{ 0, 0, 0, 255 },
+	};
+
+	Colour framebuffer[160 * 144]{};
+
+	bool CanRender() const {return Cpu.canRender; }
+	void SetCanRender( bool canRender ) { Cpu.canRender = canRender; }
+
 private:
 	std::vector<uint8_t> RamBanks{};
 	LR35902 Cpu{ *this };
 
 	unsigned int CurrentCycles{};
-	unsigned int DivCycles{}, TIMACycles{};
+	int DivCycles{}, TIMACycles{};
 
 	uint8_t Memory[0x10000]; //The Entire addressable range; "memory" is not quite right.. //TODO: Improve (not all locations will be used)
 	std::bitset<(160 * 144) * 2> FrameBuffer{};
@@ -213,6 +298,12 @@ Bits 1-0 - Input Clock Select
 	uint8_t m_RomBank{ 1 };
 	uint8_t m_RamBank{};
 
+	uint8_t joypadValue = 0xFF;
+
+
+	void UpdateTile(uint16_t lAddress, uint8_t data);
+	void UpdateSprite(uint16_t lAddress, uint8_t data);
+	void UpdatePalette(Colour* palette, uint8_t data);
 
 	void HandleTimers( unsigned stepCycles, unsigned cycleBudget );
 	uint8_t GetJoypadState() const;

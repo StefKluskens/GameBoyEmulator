@@ -36,6 +36,8 @@ namespace gbee {
 		uint16_t GetSpeed( const uint8_t instanceID ) const;
 		void SetAutoSpeed( const bool onOff, const uint8_t instanceID ) const; //Worthless really, when speed is set to MAXINT, it'll go as fast as possible..
 
+		GameBoy& GetInstance( const uint8_t instanceID ) const;
+
 	private:
 		GameBoy *Instances;
 		const uint8_t InstanceCount;

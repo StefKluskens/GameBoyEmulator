@@ -40,6 +40,10 @@ bool gbee::Emulator::GetPauseState( const uint8_t instanceID ) const									{ r
 void gbee::Emulator::SetSpeed( const uint16_t cycleMultiplier, const uint8_t instanceID ) const			{ Instances[instanceID].SetSpeedMultiplier( cycleMultiplier ); }
 uint16_t gbee::Emulator::GetSpeed( const uint8_t instanceID ) const										{ return Instances[instanceID].GetSpeedMultiplier(); }
 void gbee::Emulator::SetAutoSpeed( const bool onOff, const uint8_t instanceID ) const					{ Instances[instanceID].SetAutoSpeed( onOff ); }
+GameBoy& gbee::Emulator::GetInstance(const uint8_t instanceID) const
+{
+	return Instances[instanceID];
+}
 void gbee::Emulator::RunForCycles( const unsigned short cycles, const uint8_t instanceID ) const		{ Instances[instanceID].SetCyclesToRun( cycles ); }
 
 void gbee::Emulator::RunForFrames( const unsigned short frames, const bool onlyDrawLastFrame, const uint8_t instanceID ) const {

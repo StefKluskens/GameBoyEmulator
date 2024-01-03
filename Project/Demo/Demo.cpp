@@ -4,6 +4,7 @@
 #include "imgui/imgui_sdl.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "../GameboyEmulator/EmulatorClean.h"
+#include "../GameboyEmulator/GameBoy.h"
 
 /*
 	This is just a proof of concept, a quick example as to how you'd use the library
@@ -15,7 +16,8 @@ SDL_Window* wind{};
 SDL_Renderer* rendr{};
 SDL_Texture* textures[INSTANCECOUNT];
 //gbee::Emulator emu{"Tetris(JUE)(V1.1)[!].gb", INSTANCECOUNT};
-gbee::Emulator emu{"Batman-TheVideoGame(World).gb", INSTANCECOUNT};
+gbee::Emulator emu{"Dr.Mario.gb", INSTANCECOUNT};
+//gbee::Emulator emu{"Batman-TheVideoGame(World).gb", INSTANCECOUNT};
 //gbee::Emulator emu{"SuperMarioLand(JUE)(V1.1)[!].gb", INSTANCECOUNT};
 //gbee::Emulator emu{"cpu_instrs.gb", INSTANCECOUNT};
 //gbee::Emulator emu{"01-special.gb", INSTANCECOUNT};
@@ -35,28 +37,28 @@ void SetKeyState(const SDL_Event& event) {
 	gbee::Key key;
 	switch (event.key.keysym.sym) {
 			case SDLK_a:
-				key = gbee::aButton;
+				key = gbee::JOYPAD_A;
 				break ;
 			case SDLK_d:
-				key = gbee::bButton;
+				key = gbee::JOYPAD_B;
 				break ;
 			case SDLK_RETURN:
-				key = gbee::start;
+				key = gbee::JOYPAD_START;
 				break ;
 			case SDLK_SPACE:
-				key = gbee::select;
+				key = gbee::JOYPAD_SELECT;
 				break ;
 			case SDLK_RIGHT:
-				key = gbee::right;
+				key = gbee::JOYPAD_RIGHT;
 				break ;
 			case SDLK_LEFT:
-				key = gbee::left;
+				key = gbee::JOYPAD_LEFT;
 				break ;
 			case SDLK_UP:
-				key = gbee::up;
+				key = gbee::JOYPAD_UP;
 				break ;
 			case SDLK_DOWN:
-				key = gbee::down;
+				key = gbee::JOYPAD_DOWN;
 				break ;
 			default:
 				return;
@@ -90,6 +92,8 @@ void Update() {
 	const float fps{59.73f};
 	bool autoSpeed[INSTANCECOUNT]{};
 	int speedModifiers[INSTANCECOUNT];
+	std::array<uint8_t, 160 * 144 * 4> viewportPixels{};
+	viewportPixels.fill( 0xFF );
 
 	while (SDLEventPump()) {
 
@@ -100,11 +104,27 @@ void Update() {
 
 		//ImGui::ShowDemoWindow();
 		uint16_t pixelBuffer[160*144]{};
+
+		
 		for (int i{ 0 }; i < INSTANCECOUNT; ++i) {
 			const std::string name{ "Instance " };
-			CraftPixelBuffer( i, pixelBuffer );
-			SDL_UpdateTexture( textures[i],nullptr, (void*)pixelBuffer, 160*sizeof(uint16_t));
-			speedModifiers[i] = emu.GetSpeed( i );
+			/*CraftPixelBuffer( i, pixelBuffer );
+			SDL_UpdateTexture( textures[i],nullptr, (void*)pixelBuffer, 160*sizeof(uint16_t));*/
+
+			if (emu.GetInstance(i).CanRender())
+			{
+				for (int j = 0; j < (144 * 160); j++)
+				{
+					Colour colour = emu.GetInstance(i).framebuffer[j];
+					std::copy(colour.colours, colour.colours + 4, viewportPixels.begin() + (j * 4));
+				}
+				SDL_UpdateTexture(textures[i], nullptr, viewportPixels.data(), 160 * 4);
+				speedModifiers[i] = emu.GetSpeed(i);
+
+				emu.GetInstance(i).SetCanRender(false);
+			}
+
+			
 			
 			ImGui::Begin( (name + std::to_string( i )).c_str(), nullptr, ImGuiWindowFlags_NoResize );
 				ImGui::SetWindowSize( {300, 230} );
@@ -150,7 +170,8 @@ int main( int argc, char *argv[] ) {
 	rendr = SDL_CreateRenderer( wind, -1, SDL_RENDERER_ACCELERATED );
 
 	for (int i{ 0 }; i < INSTANCECOUNT; ++i) {
-		textures[i] = SDL_CreateTexture( rendr, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_STREAMING , 160, 144 );
+		//textures[i] = SDL_CreateTexture( rendr, SDL_PIXELFORMAT_RGBA4444, SDL_TEXTUREACCESS_STREAMING , 160, 144 );
+		textures[i] = SDL_CreateTexture( rendr, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING , 160, 144 );
 
 		SDL_SetRenderTarget( rendr, textures[i] );
 		SDL_SetRenderDrawColor( rendr, 255, 0, 255, 255 );

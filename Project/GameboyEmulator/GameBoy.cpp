@@ -561,7 +561,8 @@ void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudge
 		TIMACycles += stepCycles;
 
 		int threshold{ 0 };
-		switch (TACTimer & 0x03) {
+		switch (TACTimer & 0x03) 
+		{
 			case 0:
 				threshold = 1024;
 				break;
@@ -608,6 +609,34 @@ void GameBoy::HandleTimers( const unsigned stepCycles, const unsigned cycleBudge
 //	}
 //	return res;
 //}
+
+bool GameBoy::IsInterruptEnabled(const uint8_t interrupt) 
+{
+	return (ReadMemory(0xFFFF) & interrupt);
+}
+
+bool GameBoy::IsInterruptFlagSet(const uint8_t interrupt)
+{
+	return (ReadMemory(0xFF0F) & interrupt);
+}
+
+void GameBoy::TriggerInterrupt(const uint8_t interrupt, uint8_t jumpPc)
+{
+	//Write short stack
+	Cpu.GetRegisters().sp -= 2;
+	WriteMemoryWord(Cpu.GetRegisters().sp, Cpu.GetRegisters().pc);
+
+	Cpu.GetRegisters().pc = jumpPc;
+	Cpu.SetIme((int(false) << 0));
+
+	uint8_t IfValue = ReadMemory(0xFF0F);
+	IfValue &= ~interrupt;
+	return WriteMemory(0xFF0F, IfValue);
+
+	Cpu.SetHalted(false);
+
+	AddCycles(20);
+}
 
 void GameBoy::UpdateTile(uint16_t lAddress, uint8_t data)
 {

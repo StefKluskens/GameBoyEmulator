@@ -56,6 +56,7 @@ void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)
 			data = 1;
 		}
 		m_RomBank = data;
+		//std::cout<<"Rom bank: " << unsigned(m_RomBank) << '\n';
 	}
 	else if (address < 0x6000)
 	{
@@ -65,7 +66,7 @@ void MBC1::WriteByte(uint16_t address, uint8_t data, uint8_t* memory)
 	{
 		m_BankingMode = data & 0x1;
 	}
-	else if (address >= 0xA000 && address <= 0xBFFF)
+	else if (address >= 0xA000 && address < 0xC000)
 	{
 		if (m_RamBankEnabled && !m_RamBanks.empty())
 		{

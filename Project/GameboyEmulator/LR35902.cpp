@@ -184,7 +184,7 @@ void LR35902::HandleInterupts()
 	}
 }
 
-bool LR35902::HandeInterrupts()
+bool LR35902::CheckInterrupts()
 {
 	if (Gameboy.ReadMemory(0xFFFF) & Gameboy.ReadMemory(0xFF0F) & 0x0F)
 	{
@@ -196,33 +196,33 @@ bool LR35902::HandeInterrupts()
 		return false;
 	}
 
-	if (IsInterruptEnabled(vBlank) && IsInterruptFlagSet(vBlank))
+	if (Gameboy.IsInterruptEnabled(vBlank) && Gameboy.IsInterruptFlagSet(vBlank))
 	{
-		TriggerInterrupt(vBlank, 0x40);
+		Gameboy.TriggerInterrupt(vBlank, 0x40);
 		return true;
 	}
 
-	if (IsInterruptEnabled(lcdStat) && IsInterruptFlagSet(lcdStat))
+	if (Gameboy.IsInterruptEnabled(lcdStat) && Gameboy.IsInterruptFlagSet(lcdStat))
 	{
-		TriggerInterrupt(lcdStat, 0x48);
+		Gameboy.TriggerInterrupt(lcdStat, 0x48);
 		return true;
 	}
 
-	if (IsInterruptEnabled(timer) && IsInterruptFlagSet(timer))
+	if (Gameboy.IsInterruptEnabled(timer) && Gameboy.IsInterruptFlagSet(timer))
 	{
-		TriggerInterrupt(timer, 0x50);
+		Gameboy.TriggerInterrupt(timer, 0x50);
 		return true;
 	}
 
-	if (IsInterruptEnabled(serial) && IsInterruptFlagSet(serial))
+	if (Gameboy.IsInterruptEnabled(serial) && Gameboy.IsInterruptFlagSet(serial))
 	{
-		TriggerInterrupt(serial, 0x58);
+		Gameboy.TriggerInterrupt(serial, 0x58);
 		return true;
 	}
 
-	if (IsInterruptEnabled(joypad) && IsInterruptFlagSet(joypad))
+	if (Gameboy.IsInterruptEnabled(joypad) && Gameboy.IsInterruptFlagSet(joypad))
 	{
-		TriggerInterrupt(joypad, 0x60);
+		Gameboy.TriggerInterrupt(joypad, 0x60);
 		return true;
 	}
 
@@ -383,34 +383,6 @@ void LR35902::CompareLy_LYC()
 	{
 		Gameboy.RequestInterrupt(lcdStat);
 	}
-}
-
-bool LR35902::IsInterruptEnabled(const uint8_t interrupt) const
-{
-	return (Gameboy.ReadMemory(0xFFFF) & interrupt);
-}
-
-bool LR35902::IsInterruptFlagSet(const uint8_t interrupt) const
-{
-	return (Gameboy.ReadMemory(0xFF0F) & interrupt);
-}
-
-void LR35902::TriggerInterrupt(const uint8_t interrupt, uint8_t jumpPc)
-{
-	//Write short stack
-	Register.sp -= 2;
-	Gameboy.WriteMemoryWord(Register.sp, Register.pc);
-
-	Register.pc = jumpPc;
-	m_ime = (int(false) << 0);
-
-	uint8_t IfValue = Gameboy.ReadMemory(0xFF0F);
-	IfValue &= ~interrupt;
-	return Gameboy.WriteMemory(0xFF0F, IfValue);
-
-	m_Halted = false;
-
-	Gameboy.AddCycles(20);
 }
 
 void LR35902::ExecuteOpcode( uint8_t opcode )
@@ -2684,7 +2656,8 @@ void LR35902::ConfigureLCDStatus()
 	} 
 	else 
 	{
-		//Mode Hblank 0
+		//Mode Hblank 0µ
+		canRender = true;
 		Gameboy.GetLCDS() &= 0xFC;
 		oldMode |= (bool( Gameboy.GetLCDS() & 8 ) << 2);
 	}

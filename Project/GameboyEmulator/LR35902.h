@@ -84,10 +84,14 @@ public:
 	 * \note A Rudementary interupt handler
 	 */
 	void HandleInterupts();
-	bool HandeInterrupts();
+	bool CheckInterrupts();
 	void HandleGraphics( const unsigned cycles, const unsigned cycleBudget, const bool draw ) noexcept;
 
 	Registers& GetRegisters() { return Register; }
+
+	void SetIme( const bool ime ) { m_ime = ime; }
+	bool GetIme() const { return m_ime; }
+	void SetHalted( const bool halted ) { m_Halted = halted; }
 
 	bool canRender{ false };
 private:
@@ -165,9 +169,7 @@ private:
 	int modeclock = 0;
 
 	void CompareLy_LYC();
-	bool IsInterruptEnabled( const uint8_t interrupt ) const;
-	bool IsInterruptFlagSet( const uint8_t interrupt ) const;
-	void TriggerInterrupt(const uint8_t interrupt, uint8_t jumpPc);
+	
 
 	void ExecuteOpcode( uint8_t opcode );
 	uint8_t ExecuteExtendedOpcode( uint8_t opcode );

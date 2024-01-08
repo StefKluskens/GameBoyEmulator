@@ -9,6 +9,7 @@ class MemoryBankController;
 
 enum MBCs : uint8_t { none, mbc1, mbc2, mbc3, mbc4, mbc5 };
 enum Interupts : uint8_t { vBlank, lcdStat, timer, serial, joypad };
+//enum Interupts : uint8_t { vBlank = (1 << 0), lcdStat = (1 << 1), timer = (1 << 2), serial = (1 << 3), joypad = (1 << 4) };
 //enum Key : uint8_t { right, aButton, left, bButton, up, select, down, start };
 
 enum Key {
@@ -203,6 +204,14 @@ public:
 
 	bool CanRender() const {return Cpu.canRender; }
 	void SetCanRender( bool canRender ) { Cpu.canRender = canRender; }
+
+	bool IsInterruptEnabled(const uint8_t interrupt);
+	bool IsInterruptFlagSet(const uint8_t interrupt);
+	void TriggerInterrupt(const uint8_t interrupt, uint8_t jumpPc);
+	/*void SetInterruptFlag(const uint8_t interrupt);
+	void ResetInterruptFlag(const uint8_t interrupt);
+	void SetMasterFlag(const bool state);
+	bool IsMasterFlagSet() const;*/
 
 private:
 	std::vector<uint8_t> RamBanks{};
